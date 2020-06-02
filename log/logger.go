@@ -160,14 +160,17 @@ func (logger *Logger) SetComponentName(pc uintptr, fileName string, line int, ok
 	}
 	folderExpression := regexp.MustCompile(folderDelimiter)
 	slashIndices := folderExpression.FindAllStringIndex(fileName, -1) //TODO handle non-Linux paths
-	if slashIndices == nil || len(slashIndices) <= 1 {
+	if slashIndices == nil {
 		logger.WriteToLog(LevelInfo, errorFormat, "couldn't find any repo subfolders", fileName)
 		return
 	}
 	endOfFirst := baseIndex[0][1]
 	startOfLast := slashIndices[len(slashIndices)-1][0]
-	pathName := fileName[endOfFirst:startOfLast]
-	logger.componentName = pathName
+	if endOfFirst >= startOfLast {
+		logger.WriteToLog(LevelInfo, errorFormat, "couldn't find any repo subfolders", fileName)
+		return
+	}
+	logger.componentName = fileName[endOfFirst:startOfLast]
 
 	//TODO remove
 	// if executableError == nil {
