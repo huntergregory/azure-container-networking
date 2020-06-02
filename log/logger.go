@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"regexp"
 	"sync"
 )
 
@@ -20,6 +21,14 @@ const (
 	LevelInfo
 	LevelDebug
 )
+
+const (
+	UnknownLevel     = "UNKNOWN_LEVEL"
+	UnknownComponent = "UNKNOWN_COMPONENT"
+)
+
+// update GetLevelName() if you add or remove a level
+// ordering matters - see WriteToLog()
 
 // Log target
 const (
@@ -44,17 +53,18 @@ const (
 
 // Logger object
 type Logger struct {
-	l            *log.Logger
-	out          io.WriteCloser
-	name         string
-	level        int
-	target       int
-	maxFileSize  int
-	maxFileCount int
-	callCount    int
-	directory    string
-	reports      chan interface{}
-	mutex        *sync.Mutex
+	l             *log.Logger
+	out           io.WriteCloser
+	name          string
+	level         int
+	target        int
+	maxFileSize   int
+	maxFileCount  int
+	callCount     int
+	directory     string
+	reports       chan interface{}
+	mutex         *sync.Mutex
+	componentName string
 }
 
 var pid = os.Getpid()
@@ -129,6 +139,44 @@ func (logger *Logger) getLogFileName() string {
 	}
 
 	return logFileName
+}
+
+const folderDelimiter = "/" //TODO handle non-Linux path
+const base = "azure-container-networking" + folderDelimiter
+const errorFormat = "Couldn't set component name of logger with problem: %s in path %s"
+
+// SetComponentName sets the component name that appears at the beginning of a message in a log.
+// Pass in runtime.Caller(0) as the only argument
+func (logger *Logger) SetComponentName(pc uintptr, fileName string, line int, ok bool) {
+	if !ok {
+		logger.WriteToLog(LevelInfo, "input arguments from Caller() failed")
+		return
+	}
+	baseExpression := regexp.MustCompile(base)
+	baseIndex := baseExpression.FindAllStringIndex(fileName, 1)
+	if baseIndex == nil {
+		logger.WriteToLog(LevelInfo, errorFormat, "couldn't find base folder", fileName)
+		return
+	}
+	folderExpression := regexp.MustCompile(folderDelimiter)
+	slashIndices := folderExpression.FindAllStringIndex(fileName, -1) //TODO handle non-Linux paths
+	if slashIndices == nil || len(slashIndices) <= 1 {
+		logger.WriteToLog(LevelInfo, errorFormat, "couldn't find any repo subfolders", fileName)
+		return
+	}
+	endOfFirst := baseIndex[0][1]
+	startOfLast := slashIndices[len(slashIndices)-1][0]
+	pathName := fileName[endOfFirst:startOfLast]
+	logger.componentName = pathName
+
+	//TODO remove
+	// if executableError == nil {
+	// 	path, err := filepath.EvalSymlinks(filepath.Dir(executableString))
+	// 	if err == nil {
+	// 		logger.componentName = path //TODO shorten path
+	// 	}
+	// }
+	// //TODO something about the errors if not nil
 }
 
 // Rotate checks the active log file size and rotates log files if necessary.
@@ -246,3 +294,63 @@ func (logger *Logger) Errorf(format string, args ...interface{}) {
 		}
 	}()
 }
+
+// WriteToLog formats a message and outputs it to a log if the specified level
+// is as or more important than the logger's current level.
+func (logger *Logger) WriteToLog(level int, format string, args ...interface{}) {
+	if logger.level < level {
+		return
+	}
+
+	fullMessage := GetLevelString(level) + logger.GetComponentString() + format
+	logger.mutex.Lock()
+	logger.logf(fullMessage, args...)
+	logger.mutex.Unlock()
+	go func() {
+		if logger.reports != nil {
+			logger.reports <- fmt.Sprintf(format, args...)
+		}
+	}()
+}
+
+// GetLevelName returns the name of a level or a default name if the level is undefined.
+func GetLevelName(level int) string {
+	switch level {
+	case LevelAlert:
+		return "ALERT"
+	case LevelDebug:
+		return "DEBUG"
+	case LevelError:
+		return "ERROR"
+	case LevelInfo:
+		return "INFO"
+	case LevelWarning:
+		return "WARN"
+	default:
+		return UnknownLevel
+	}
+}
+
+// GetLevelString returns the name of a level surrounded in square brackets.
+func GetLevelString(level int) string {
+	return surroundInBrackets(GetLevelName(level))
+}
+
+// GetComponentString returns the logger's ComponentName surrounded in square brackets,
+// or a default string if the ComponentName is empty.
+func (logger *Logger) GetComponentString() string {
+	name := logger.componentName
+	if logger.componentName == "" {
+		name = UnknownComponent
+	}
+	return surroundInBrackets(name)
+}
+
+func surroundInBrackets(text string) string {
+	return "[" + text + "] "
+}
+
+/*
+TODO
+- deprecate Printf, Logf, Errorf, Debugf
+*/
