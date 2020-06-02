@@ -36,6 +36,12 @@ func GetLogDirectory() string {
 	return stdLog.GetLogDirectory()
 }
 
+// SetComponentName sets the component name that appears at the beginning of a message in a log.
+// Pass in runtime.Caller(0) as the only argument
+func SetComponentName(pc uintptr, fileName string, line int, ok bool) {
+	stdLog.SetComponentName(pc, fileName, line, ok)
+}
+
 func Request(tag string, request interface{}, err error) {
 	stdLog.Request(tag, request, err)
 }
@@ -61,3 +67,20 @@ func Debugf(format string, args ...interface{}) {
 func Errorf(format string, args ...interface{}) {
 	stdLog.Errorf(format, args...)
 }
+
+// WriteToLog formats a message and outputs it to a log if the specified level
+// is as or more important than the logger's current level.
+func WriteToLog(level int, format string, args ...interface{}) {
+	stdLog.WriteToLog(level, format, args...)
+}
+
+// GetComponentString returns the logger's ComponentName surrounded in square brackets,
+// or a default string if the ComponentName is empty.
+func GetComponentString() string {
+	return stdLog.GetComponentString()
+}
+
+/*
+TODO
+- deprecate Printf, Logf, Errorf, Debugf
+*/
