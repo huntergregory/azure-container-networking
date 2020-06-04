@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
+	"runtime"
 	"time"
 
 	"github.com/Azure/azure-container-networking/cni"
@@ -127,6 +128,11 @@ func handleIfCniUpdate(update func(*skel.CmdArgs) error) (bool, error) {
 func main() {
 
 	startTime := time.Now()
+
+	log.Printf("hellooooo from Printf")
+	log.WriteToLog(log.LevelInfo, "hellooooo from WriteToLog")
+
+	testLogUpdates()
 
 	// Initialize and parse command line arguments.
 	acn.ParseArgs(&args, printVersion)
@@ -258,3 +264,69 @@ func main() {
 		}
 	}
 }
+
+// var alreadyTested = false
+
+func testLogUpdates() {
+	// if alreadyTested {
+	// 	return
+	// }
+	// alreadyTested = true
+	log.SetLevel(log.LevelInfo)
+	log.WriteToLog(log.LevelInfo, "starting logs")
+
+	// normal
+	log.SetComponentName(runtime.Caller(0))
+	writeItAll()
+
+	// test error-tolerance
+	logWithFolder("thebest\\azure-container-networking/\\folder\\structure\\ever.go")
+	logWithFolder("thebest/folder/structure/ever.go")
+	logWithFolder("onefolder/withfile.go")
+	logWithFolder("nogo/file/infolders")
+	logWithFolder("onefolder")
+	logWithFolder("onefolderwithslash/")
+	logWithFolder("")
+	logWithFolder("azure-container-networking")
+	logWithFolder("superfolder/azure-container-networking")
+	logWithFolder("superfolder/azure-container-networking/")
+
+	logWithFolder("azure-container-networking/subfolder")
+	logWithFolder("azure-container-networking/subfolder/")
+	logWithFolder("azure-container-networking/subfolder/file.go")
+	logWithFolder("azure-container-networking/subfolder/lowerfolder/file.go")
+	logWithFolder("azure-container-networking/subfolder/lowerfolder")
+	logWithFolder("azure-container-networking/subfolder/lowerfolder/")
+
+	// failure from Caller()
+	x, y, z, ok := runtime.Caller(0)
+	ok = false
+	log.SetComponentName(x, y, z, ok)
+	writeItAll()
+}
+
+func logWithFolder(folderName string) {
+	x, _, z, ok := runtime.Caller(0)
+	log.SetComponentName(x, folderName, z, ok)
+	log.WriteToLog(log.LevelInfo, "set folder name %s", folderName)
+	writeItAll()
+}
+
+func writeItAll() {
+	log.WriteToLog(log.LevelDebug, "round 1 shouldn't show up")
+	log.WriteToLog(log.LevelWarning, "round 2: is %s", "good")
+	log.WriteToLog(log.LevelError, "testing %d %d %s", 1, 2, "3")
+	log.WriteToLog(log.LevelAlert, "round 4: testing alert")
+}
+
+// UNIT TESTING
+// "thebest\\azure-container-networking/\\folder\\structure\\ever.go"
+// "thebest/folder/structure/ever.go"
+// "onefolder/withfile.go"
+// "nogo/file/infolders"
+// ""
+// "onefolder"
+// "onefolderwithslash/"
+
+// ok := false
+// check that all messages are in the log
