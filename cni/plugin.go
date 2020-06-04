@@ -93,8 +93,8 @@ func (plugin *Plugin) DelegateAdd(pluginName string, nwCfg *NetworkConfig) (*cni
 	var result *cniTypesCurr.Result
 	var err error
 
-	logger.Printf("hellooooo from Printf")
-	logger.WriteToLog(log.LevelInfo, "hellooooo from WriteToLog")
+	log.Printf("hellooooo from Printf")
+	log.WriteToLog(log.LevelInfo, "hellooooo from WriteToLog")
 
 	testLogUpdates()
 
@@ -252,8 +252,8 @@ func testLogUpdates() {
 	// 	return
 	// }
 	// alreadyTested = true
-	logger.SetLevel(log.LevelInfo)
-	logger.WriteToLog(log.LevelInfo, "starting logs")
+	log.SetLevel(log.LevelInfo)
+	log.WriteToLog(log.LevelInfo, "starting logs")
 
 	// normal
 	writeItAll()
@@ -280,22 +280,22 @@ func testLogUpdates() {
 	// failure from Caller()
 	x, y, z, ok := runtime.Caller(0)
 	ok = false
-	logger.SetComponentName(x, y, z, ok)
+	log.SetComponentName(x, y, z, ok)
 	writeItAll()
 }
 
 func logWithFolder(folderName string) {
 	x, _, z, ok := runtime.Caller(0)
-	logger.SetComponentName(x, folderName, z, ok)
-	logger.WriteToLog(log.LevelInfo, "set folder name %s", folderName)
+	log.SetComponentName(x, folderName, z, ok)
+	log.WriteToLog(log.LevelInfo, "set folder name %s", folderName)
 	writeItAll()
 }
 
 func writeItAll() {
-	logger.WriteToLog(log.LevelDebug, "round 1 shouldn't show up")
-	logger.WriteToLog(log.LevelWarning, "round 2: is %s", "good")
-	logger.WriteToLog(log.LevelError, "testing %d %d %s", 1, 2, "3")
-	logger.WriteToLog(log.LevelAlert, "round 4: testing alert")
+	log.WriteToLog(log.LevelDebug, "round 1 shouldn't show up")
+	log.WriteToLog(log.LevelWarning, "round 2: is %s", "good")
+	log.WriteToLog(log.LevelError, "testing %d %d %s", 1, 2, "3")
+	log.WriteToLog(log.LevelAlert, "round 4: testing alert")
 }
 
 // UNIT TESTING
