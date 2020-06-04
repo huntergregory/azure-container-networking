@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"runtime"
 	"sync"
 )
 
@@ -83,6 +84,14 @@ func NewLogger(name string, level int, target int, logDir string) *Logger {
 	logger.mutex = &sync.Mutex{}
 
 	return &logger
+}
+
+// NewComponentLogger creates a new Logger, creating a componentName based on the path
+// of the file where this function was called from
+func NewComponentLogger(name string, level int, target int, logDir string) *Logger {
+	var logger = NewLogger(name, level, target, logDir)
+	logger.SetComponentName(runtime.Caller(1))
+	return logger
 }
 
 // SetName sets the log name.
