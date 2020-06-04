@@ -93,6 +93,11 @@ func (plugin *Plugin) DelegateAdd(pluginName string, nwCfg *NetworkConfig) (*cni
 	var result *cniTypesCurr.Result
 	var err error
 
+	logger.Printf("hellooooo from Printf")
+	logger.WriteToLog(log.LevelInfo, "hellooooo from WriteToLog")
+
+	testLogUpdates()
+
 	log.Printf("[cni] Calling plugin %v ADD nwCfg:%+v.", pluginName, nwCfg)
 	defer func() { log.Printf("[cni] Plugin %v returned result:%+v, err:%v.", pluginName, result, err) }()
 
@@ -240,3 +245,67 @@ func (plugin *Plugin) IsSafeToRemoveLock(processName string) (bool, error) {
 	log.Errorf("Plugin store is nil")
 	return false, fmt.Errorf("plugin store nil")
 }
+
+// var alreadyTested = false
+func testLogUpdates() {
+	// if alreadyTested {
+	// 	return
+	// }
+	// alreadyTested = true
+	logger.SetLevel(log.LevelInfo)
+	logger.WriteToLog(log.LevelInfo, "starting logs")
+
+	// normal
+	writeItAll()
+
+	// test error-tolerance
+	logWithFolder("thebest\\azure-container-networking/\\folder\\structure\\ever.go")
+	logWithFolder("thebest/folder/structure/ever.go")
+	logWithFolder("onefolder/withfile.go")
+	logWithFolder("nogo/file/infolders")
+	logWithFolder("onefolder")
+	logWithFolder("onefolderwithslash/")
+	logWithFolder("")
+	logWithFolder("azure-container-networking")
+	logWithFolder("superfolder/azure-container-networking")
+	logWithFolder("superfolder/azure-container-networking/")
+
+	logWithFolder("azure-container-networking/subfolder")
+	logWithFolder("azure-container-networking/subfolder/")
+	logWithFolder("azure-container-networking/subfolder/file.go")
+	logWithFolder("azure-container-networking/subfolder/lowerfolder/file.go")
+	logWithFolder("azure-container-networking/subfolder/lowerfolder")
+	logWithFolder("azure-container-networking/subfolder/lowerfolder/")
+
+	// failure from Caller()
+	x, y, z, ok := runtime.Caller(0)
+	ok = false
+	logger.SetComponentName(x, y, z, ok)
+	writeItAll()
+}
+
+func logWithFolder(folderName string) {
+	x, _, z, ok := runtime.Caller(0)
+	logger.SetComponentName(x, folderName, z, ok)
+	logger.WriteToLog(log.LevelInfo, "set folder name %s", folderName)
+	writeItAll()
+}
+
+func writeItAll() {
+	logger.WriteToLog(log.LevelDebug, "round 1 shouldn't show up")
+	logger.WriteToLog(log.LevelWarning, "round 2: is %s", "good")
+	logger.WriteToLog(log.LevelError, "testing %d %d %s", 1, 2, "3")
+	logger.WriteToLog(log.LevelAlert, "round 4: testing alert")
+}
+
+// UNIT TESTING
+// "thebest\\azure-container-networking/\\folder\\structure\\ever.go"
+// "thebest/folder/structure/ever.go"
+// "onefolder/withfile.go"
+// "nogo/file/infolders"
+// ""
+// "onefolder"
+// "onefolderwithslash/"
+
+// ok := false
+// check that all messages are in the log
