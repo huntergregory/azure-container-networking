@@ -1,10 +1,12 @@
 package iptm
 
 import (
-	"testing"
 	"os"
+	"testing"
 
 	"github.com/Azure/azure-container-networking/npm/util"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 func TestSave(t *testing.T) {
@@ -201,6 +203,15 @@ func TestRun(t *testing.T) {
 	}
 }
 
+var (
+	opsProcessed = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "myapp_processed_ops_total",
+		Help: "The total number of processed events",
+	})
+
+	someGauge = prometheus.NewGauge
+)
+
 func TestMain(m *testing.M) {
 	iptMgr := NewIptablesManager()
 	iptMgr.Save(util.IptablesConfigFile)
@@ -208,6 +219,20 @@ func TestMain(m *testing.M) {
 	exitCode := m.Run()
 
 	iptMgr.Restore(util.IptablesConfigFile)
+
+	// fmt.Printf("exit code: %d", exitCode)
+
+	// go func() {
+	// 	for {
+	// 		opsProcessed.Inc()
+	// 		time.Sleep(2 * time.Second)
+	// 	}
+	// }()
+
+	// http.Handle("/metrics", promhttp.Handler())
+	// http.ListenAndServe(":8081", nil)
+
+	// time.Sleep(10 * time.Second)
 
 	os.Exit(exitCode)
 }
