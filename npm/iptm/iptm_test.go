@@ -3,11 +3,19 @@ package iptm
 import (
 	"os"
 	"testing"
+	"time"
+
+	"github.com/Azure/azure-container-networking/npm/metrics"
 
 	"github.com/Azure/azure-container-networking/npm/util"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 )
+
+const testPrometheusToo = true
+const prometheusErrorMessage = "You can turn off Prometheus testing by flipping the boolean constant testPrometheusToo."
+
+func printPrometheusError(t *testing.T, message string) {
+	t.Errorf(message + ". " + prometheusErrorMessage)
+}
 
 func TestSave(t *testing.T) {
 	iptMgr := &IptablesManager{}
@@ -149,8 +157,31 @@ func TestAdd(t *testing.T) {
 			util.IptablesReject,
 		},
 	}
+
+	var (
+		val    = 0
+		newVal = 0
+		err    error
+	)
+	if testPrometheusToo {
+		val, err = metrics.GetValue("num_iptables_rules")
+		if err != nil {
+			printPrometheusError(t, "Problem getting http metrics")
+		}
+	}
+
 	if err := iptMgr.Add(entry); err != nil {
 		t.Errorf("TestAdd failed @ iptMgr.Add")
+	}
+
+	if testPrometheusToo {
+		newVal, err = metrics.GetValue("num_iptables_rules")
+		if err != nil {
+			printPrometheusError(t, "Problem getting http metrics")
+		}
+		if newVal != val+1 {
+			printPrometheusError(t, "Add iptable rule didn't register in prometheus")
+		}
 	}
 }
 
@@ -177,8 +208,30 @@ func TestDelete(t *testing.T) {
 		t.Errorf("TestDelete failed @ iptMgr.Add")
 	}
 
+	var (
+		val    = 0
+		newVal = 0
+		err    error
+	)
+	if testPrometheusToo {
+		val, err = metrics.GetValue("num_iptables_rules")
+		if err != nil {
+			printPrometheusError(t, "Problem getting http metrics")
+		}
+	}
+
 	if err := iptMgr.Delete(entry); err != nil {
 		t.Errorf("TestDelete failed @ iptMgr.Delete")
+	}
+
+	if testPrometheusToo {
+		newVal, err = metrics.GetValue("num_iptables_rules")
+		if err != nil {
+			printPrometheusError(t, "Problem getting http metrics")
+		}
+		if newVal != val-1 {
+			printPrometheusError(t, "Delete iptable rule didn't register in prometheus")
+		}
 	}
 }
 
@@ -203,15 +256,6 @@ func TestRun(t *testing.T) {
 	}
 }
 
-var (
-	opsProcessed = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "myapp_processed_ops_total",
-		Help: "The total number of processed events",
-	})
-
-	someGauge = prometheus.NewGauge
-)
-
 func TestMain(m *testing.M) {
 	iptMgr := NewIptablesManager()
 	iptMgr.Save(util.IptablesConfigFile)
@@ -220,19 +264,51 @@ func TestMain(m *testing.M) {
 
 	iptMgr.Restore(util.IptablesConfigFile)
 
-	// fmt.Printf("exit code: %d", exitCode)
-
-	// go func() {
-	// 	for {
-	// 		opsProcessed.Inc()
-	// 		time.Sleep(2 * time.Second)
-	// 	}
-	// }()
-
-	// http.Handle("/metrics", promhttp.Handler())
-	// http.ListenAndServe(":8081", nil)
-
-	// time.Sleep(10 * time.Second)
+	// messWithMetrics()
 
 	os.Exit(exitCode)
+}
+
+func messWithMetrics() {
+	go func() {
+		for {
+			metrics.Inc(metrics.NumPolicies)
+			time.Sleep(2 * time.Second)
+		}
+	}()
+
+	go func() {
+		for k := 0; k < 25; k++ {
+			for j := 0; j < 2*k; j++ {
+				metrics.Inc(metrics.NumIpSets)
+			}
+			time.Sleep(2 * time.Second)
+		}
+	}()
+
+	go func() {
+		for j := 0; j < 500; j += 2 {
+			for k := 0; k < 2; k++ {
+				metrics.Observe(metrics.AddPolicyExecTime, float64(2*k*j))
+				time.Sleep(time.Second * time.Duration((k+1)/2))
+			}
+			for k := 0; k < 3; k++ {
+				metrics.Observe(metrics.AddPolicyExecTime, float64(-k+j))
+				time.Sleep(time.Second * time.Duration(k/3))
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			for k := 0; k < 2; k++ {
+				metrics.Observe(metrics.AddIpSetExecTime, float64(2*k))
+				time.Sleep(time.Second * time.Duration((k+1)/2))
+			}
+			for k := 0; k < 3; k++ {
+				metrics.Observe(metrics.AddIpSetExecTime, float64(-k))
+				time.Sleep(time.Second * time.Duration(k+1))
+			}
+		}
+	}()
 }

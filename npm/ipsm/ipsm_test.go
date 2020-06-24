@@ -6,8 +6,16 @@ import (
 	"os"
 	"testing"
 
+	"github.com/Azure/azure-container-networking/npm/metrics"
 	"github.com/Azure/azure-container-networking/npm/util"
 )
+
+const testPrometheusToo = true
+const prometheusErrorMessage = "You can turn off Prometheus testing by flipping the boolean constant testPrometheusToo."
+
+func printPrometheusError(t *testing.T, message string) {
+	t.Errorf(message + ". " + prometheusErrorMessage)
+}
 
 func TestSave(t *testing.T) {
 	ipsMgr := NewIpsetManager()
@@ -127,8 +135,30 @@ func TestCreateSet(t *testing.T) {
 		}
 	}()
 
+	var (
+		val    = 0
+		newVal = 0
+		err    error
+	)
+	if testPrometheusToo {
+		val, err = metrics.GetValue("num_ipsets")
+		if err != nil {
+			printPrometheusError(t, "Problem getting http metrics")
+		}
+	}
+
 	if err := ipsMgr.CreateSet("test-set", util.IpsetNetHashFlag); err != nil {
 		t.Errorf("TestCreateSet failed @ ipsMgr.CreateSet")
+	}
+
+	if testPrometheusToo {
+		newVal, err = metrics.GetValue("num_ipsets")
+		if err != nil {
+			printPrometheusError(t, "Problem getting http metrics")
+		}
+		if newVal != val+1 {
+			printPrometheusError(t, "Create ipset didn't register in prometheus")
+		}
 	}
 }
 
@@ -150,6 +180,32 @@ func TestDeleteSet(t *testing.T) {
 
 	if err := ipsMgr.DeleteSet("test-set"); err != nil {
 		t.Errorf("TestDeleteSet failed @ ipsMgr.DeleteSet")
+	}
+
+	var (
+		val    = 0
+		newVal = 0
+		err    error
+	)
+	if testPrometheusToo {
+		val, err = metrics.GetValue("num_ipsets")
+		if err != nil {
+			printPrometheusError(t, "Problem getting http metrics")
+		}
+	}
+
+	if err := ipsMgr.CreateSet("test-set", util.IpsetNetHashFlag); err != nil {
+		t.Errorf("TestCreateSet failed @ ipsMgr.CreateSet")
+	}
+
+	if testPrometheusToo {
+		newVal, err = metrics.GetValue("num_ipsets")
+		if err != nil {
+			printPrometheusError(t, "Problem getting http metrics")
+		}
+		if newVal != val-1 {
+			printPrometheusError(t, "Delete ipset didn't register in prometheus")
+		}
 	}
 }
 

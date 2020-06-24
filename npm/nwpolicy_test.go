@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-container-networking/npm/ipsm"
 	"github.com/Azure/azure-container-networking/npm/iptm"
+	"github.com/Azure/azure-container-networking/npm/metrics"
 	"github.com/Azure/azure-container-networking/npm/util"
 
 	corev1 "k8s.io/api/core/v1"
@@ -14,6 +15,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
+
+const testPrometheusToo = true
+const prometheusErrorMessage = "You can turn off Prometheus testing by flipping the boolean constant testPrometheusToo."
+
+func printPrometheusError(t *testing.T, message string) {
+	t.Errorf(message + ". " + prometheusErrorMessage)
+}
 
 func TestAddNetworkPolicy(t *testing.T) {
 	npMgr := &NetworkPolicyManager{
@@ -91,6 +99,17 @@ func TestAddNetworkPolicy(t *testing.T) {
 		},
 	}
 
+	var (
+		val    = 0
+		newVal = 0
+	)
+	if testPrometheusToo {
+		val, err = metrics.GetValue("num_policies")
+		if err != nil {
+			printPrometheusError(t, "Problem getting http metrics")
+		}
+	}
+
 	npMgr.Lock()
 	if err := npMgr.AddNetworkPolicy(allowIngress); err != nil {
 		t.Errorf("TestAddNetworkPolicy failed @ allowIngress AddNetworkPolicy")
@@ -126,6 +145,16 @@ func TestAddNetworkPolicy(t *testing.T) {
 		t.Errorf("Error: %v", err)
 	}
 	npMgr.Unlock()
+
+	if testPrometheusToo {
+		newVal, err = metrics.GetValue("num_policies")
+		if err != nil {
+			printPrometheusError(t, "Problem getting http metrics")
+		}
+		if newVal != val+2 {
+			printPrometheusError(t, "Add newtork policy didn't register in prometheus")
+		}
+	}
 }
 
 func TestUpdateNetworkPolicy(t *testing.T) {
@@ -322,8 +351,29 @@ func TestDeleteNetworkPolicy(t *testing.T) {
 		t.Errorf("TestAddNetworkPolicy failed @ AddNetworkPolicy")
 	}
 
+	var (
+		val    = 0
+		newVal = 0
+	)
+	if testPrometheusToo {
+		val, err = metrics.GetValue("num_policies")
+		if err != nil {
+			printPrometheusError(t, "Problem getting http metrics")
+		}
+	}
+
 	if err := npMgr.DeleteNetworkPolicy(allow); err != nil {
 		t.Errorf("TestDeleteNetworkPolicy failed @ DeleteNetworkPolicy")
 	}
 	npMgr.Unlock()
+
+	if testPrometheusToo {
+		newVal, err = metrics.GetValue("num_policies")
+		if err != nil {
+			printPrometheusError(t, "Problem getting http metrics")
+		}
+		if newVal != val-1 {
+			printPrometheusError(t, "Delete network policy didn't register in prometheus")
+		}
+	}
 }
