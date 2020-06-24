@@ -5,6 +5,7 @@ package npm
 import (
 	"github.com/Azure/azure-container-networking/log"
 	"github.com/Azure/azure-container-networking/npm/iptm"
+	"github.com/Azure/azure-container-networking/npm/metrics"
 	"github.com/Azure/azure-container-networking/npm/util"
 	networkingv1 "k8s.io/api/networking/v1"
 )
@@ -32,6 +33,7 @@ func (npMgr *NetworkPolicyManager) AddNetworkPolicy(npObj *networkingv1.NetworkP
 		npNs   = "ns-" + npObj.ObjectMeta.Namespace
 		npName = npObj.ObjectMeta.Name
 		allNs  = npMgr.nsMap[util.KubeAllNamespacesFlag]
+		timer  = metrics.StartNewTimer()
 	)
 
 	log.Printf("NETWORK POLICY CREATING: %v", npObj)
@@ -121,6 +123,9 @@ func (npMgr *NetworkPolicyManager) AddNetworkPolicy(npObj *networkingv1.NetworkP
 		}
 	}
 
+	metrics.Inc(metrics.NumPolicies)
+	timer.StopAndRecord(metrics.AddPolicyExecTime)
+
 	return nil
 }
 
@@ -140,6 +145,7 @@ func (npMgr *NetworkPolicyManager) DeleteNetworkPolicy(npObj *networkingv1.Netwo
 		err   error
 		ns    *namespace
 		allNs = npMgr.nsMap[util.KubeAllNamespacesFlag]
+		// timer = metrics.StartNewTimer()
 	)
 
 	npNs, npName := "ns-"+npObj.ObjectMeta.Namespace, npObj.ObjectMeta.Name
@@ -186,6 +192,9 @@ func (npMgr *NetworkPolicyManager) DeleteNetworkPolicy(npObj *networkingv1.Netwo
 			return err
 		}
 	}
+
+	metrics.Dec(metrics.NumPolicies)
+	// timer.StopAndRecord(metrics.RemovePolicyExecTime)
 
 	return nil
 }
