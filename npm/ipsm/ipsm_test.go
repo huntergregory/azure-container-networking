@@ -162,17 +162,13 @@ func TestDeleteSet(t *testing.T) {
 		t.Errorf("TestDeleteSet failed @ ipsMgr.CreateSet")
 	}
 
-	if err := ipsMgr.DeleteSet("test-set"); err != nil {
-		t.Errorf("TestDeleteSet failed @ ipsMgr.DeleteSet")
-	}
-
 	val, err := metrics.GetValue("num_ipsets")
 	if err != nil {
 		t.Errorf("%v", err)
 	}
 
-	if err := ipsMgr.CreateSet("test-set", util.IpsetNetHashFlag); err != nil {
-		t.Errorf("TestCreateSet failed @ ipsMgr.CreateSet")
+	if err := ipsMgr.DeleteSet("test-set"); err != nil {
+		t.Errorf("TestDeleteSet failed @ ipsMgr.DeleteSet")
 	}
 
 	newVal, err := metrics.GetValue("num_ipsets")
