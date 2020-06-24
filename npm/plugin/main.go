@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-container-networking/log"
 	"github.com/Azure/azure-container-networking/npm"
+	"github.com/Azure/azure-container-networking/npm/metrics"
 
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/informers"
@@ -66,6 +67,8 @@ func main() {
 		log.Logf("npm failed with error %v.", err)
 		panic(err.Error)
 	}
+
+	metrics.StartHTTP(false)
 
 	select {}
 }
