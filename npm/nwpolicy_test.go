@@ -16,13 +16,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
-const testPrometheusToo = true
-const prometheusErrorMessage = "You can turn off Prometheus testing by flipping the boolean constant testPrometheusToo."
-
-func printPrometheusError(t *testing.T, message string) {
-	t.Errorf(message + ". " + prometheusErrorMessage)
-}
-
 func TestAddNetworkPolicy(t *testing.T) {
 	npMgr := &NetworkPolicyManager{
 		nsMap:            make(map[string]*namespace),
@@ -99,15 +92,9 @@ func TestAddNetworkPolicy(t *testing.T) {
 		},
 	}
 
-	var (
-		val    = 0
-		newVal = 0
-	)
-	if testPrometheusToo {
-		val, err = metrics.GetValue("num_policies")
-		if err != nil {
-			printPrometheusError(t, "Problem getting http metrics")
-		}
+	val, err := metrics.GetValue("num_policies")
+	if err != nil {
+		t.Errorf("%v", err)
 	}
 
 	npMgr.Lock()
@@ -146,14 +133,12 @@ func TestAddNetworkPolicy(t *testing.T) {
 	}
 	npMgr.Unlock()
 
-	if testPrometheusToo {
-		newVal, err = metrics.GetValue("num_policies")
-		if err != nil {
-			printPrometheusError(t, "Problem getting http metrics")
-		}
-		if newVal != val+2 {
-			printPrometheusError(t, "Add newtork policy didn't register in prometheus")
-		}
+	newVal, err := metrics.GetValue("num_policies")
+	if err != nil {
+		t.Errorf("%v", err)
+	}
+	if newVal != val+2 {
+		t.Errorf("Add newtork policy didn't register in prometheus")
 	}
 }
 
@@ -351,15 +336,9 @@ func TestDeleteNetworkPolicy(t *testing.T) {
 		t.Errorf("TestAddNetworkPolicy failed @ AddNetworkPolicy")
 	}
 
-	var (
-		val    = 0
-		newVal = 0
-	)
-	if testPrometheusToo {
-		val, err = metrics.GetValue("num_policies")
-		if err != nil {
-			printPrometheusError(t, "Problem getting http metrics")
-		}
+	val, err := metrics.GetValue("num_policies")
+	if err != nil {
+		t.Errorf("%v", err)
 	}
 
 	if err := npMgr.DeleteNetworkPolicy(allow); err != nil {
@@ -367,13 +346,11 @@ func TestDeleteNetworkPolicy(t *testing.T) {
 	}
 	npMgr.Unlock()
 
-	if testPrometheusToo {
-		newVal, err = metrics.GetValue("num_policies")
-		if err != nil {
-			printPrometheusError(t, "Problem getting http metrics")
-		}
-		if newVal != val-1 {
-			printPrometheusError(t, "Delete network policy didn't register in prometheus")
-		}
+	newVal, err := metrics.GetValue("num_policies")
+	if err != nil {
+		t.Errorf("%v", err)
+	}
+	if newVal != val-1 {
+		t.Errorf("Delete network policy didn't register in prometheus")
 	}
 }

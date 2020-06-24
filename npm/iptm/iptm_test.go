@@ -10,13 +10,6 @@ import (
 	"github.com/Azure/azure-container-networking/npm/util"
 )
 
-const testPrometheusToo = true
-const prometheusErrorMessage = "You can turn off Prometheus testing by flipping the boolean constant testPrometheusToo."
-
-func printPrometheusError(t *testing.T, message string) {
-	t.Errorf(message + ". " + prometheusErrorMessage)
-}
-
 func TestSave(t *testing.T) {
 	iptMgr := &IptablesManager{}
 	if err := iptMgr.Save(util.IptablesTestConfigFile); err != nil {
@@ -158,30 +151,21 @@ func TestAdd(t *testing.T) {
 		},
 	}
 
-	var (
-		val    = 0
-		newVal = 0
-		err    error
-	)
-	if testPrometheusToo {
-		val, err = metrics.GetValue("num_iptables_rules")
-		if err != nil {
-			printPrometheusError(t, "Problem getting http metrics")
-		}
+	val, err := metrics.GetValue("num_iptables_rules")
+	if err != nil {
+		t.Errorf("%v", err)
 	}
 
 	if err := iptMgr.Add(entry); err != nil {
 		t.Errorf("TestAdd failed @ iptMgr.Add")
 	}
 
-	if testPrometheusToo {
-		newVal, err = metrics.GetValue("num_iptables_rules")
-		if err != nil {
-			printPrometheusError(t, "Problem getting http metrics")
-		}
-		if newVal != val+1 {
-			printPrometheusError(t, "Add iptable rule didn't register in prometheus")
-		}
+	newVal, err := metrics.GetValue("num_iptables_rules")
+	if err != nil {
+		t.Errorf("%v", err)
+	}
+	if newVal != val+1 {
+		t.Errorf("Add iptable rule didn't register in prometheus")
 	}
 }
 
@@ -208,30 +192,21 @@ func TestDelete(t *testing.T) {
 		t.Errorf("TestDelete failed @ iptMgr.Add")
 	}
 
-	var (
-		val    = 0
-		newVal = 0
-		err    error
-	)
-	if testPrometheusToo {
-		val, err = metrics.GetValue("num_iptables_rules")
-		if err != nil {
-			printPrometheusError(t, "Problem getting http metrics")
-		}
+	val, err := metrics.GetValue("num_iptables_rules")
+	if err != nil {
+		t.Errorf("%v", err)
 	}
 
 	if err := iptMgr.Delete(entry); err != nil {
 		t.Errorf("TestDelete failed @ iptMgr.Delete")
 	}
 
-	if testPrometheusToo {
-		newVal, err = metrics.GetValue("num_iptables_rules")
-		if err != nil {
-			printPrometheusError(t, "Problem getting http metrics")
-		}
-		if newVal != val-1 {
-			printPrometheusError(t, "Delete iptable rule didn't register in prometheus")
-		}
+	newVal, err := metrics.GetValue("num_iptables_rules")
+	if err != nil {
+		t.Errorf("%v", err)
+	}
+	if newVal != val-1 {
+		t.Errorf("Delete iptable rule didn't register in prometheus")
 	}
 }
 

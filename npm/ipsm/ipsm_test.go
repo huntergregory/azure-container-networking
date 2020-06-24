@@ -10,13 +10,6 @@ import (
 	"github.com/Azure/azure-container-networking/npm/util"
 )
 
-const testPrometheusToo = true
-const prometheusErrorMessage = "You can turn off Prometheus testing by flipping the boolean constant testPrometheusToo."
-
-func printPrometheusError(t *testing.T, message string) {
-	t.Errorf(message + ". " + prometheusErrorMessage)
-}
-
 func TestSave(t *testing.T) {
 	ipsMgr := NewIpsetManager()
 	if err := ipsMgr.Save(util.IpsetTestConfigFile); err != nil {
@@ -135,30 +128,21 @@ func TestCreateSet(t *testing.T) {
 		}
 	}()
 
-	var (
-		val    = 0
-		newVal = 0
-		err    error
-	)
-	if testPrometheusToo {
-		val, err = metrics.GetValue("num_ipsets")
-		if err != nil {
-			printPrometheusError(t, "Problem getting http metrics")
-		}
+	val, err := metrics.GetValue("num_ipsets")
+	if err != nil {
+		t.Errorf("%v", err)
 	}
 
 	if err := ipsMgr.CreateSet("test-set", util.IpsetNetHashFlag); err != nil {
 		t.Errorf("TestCreateSet failed @ ipsMgr.CreateSet")
 	}
 
-	if testPrometheusToo {
-		newVal, err = metrics.GetValue("num_ipsets")
-		if err != nil {
-			printPrometheusError(t, "Problem getting http metrics")
-		}
-		if newVal != val+1 {
-			printPrometheusError(t, "Create ipset didn't register in prometheus")
-		}
+	newVal, err := metrics.GetValue("num_ipsets")
+	if err != nil {
+		t.Errorf("%v", err)
+	}
+	if newVal != val+1 {
+		t.Errorf("Create ipset didn't register in prometheus")
 	}
 }
 
@@ -182,30 +166,21 @@ func TestDeleteSet(t *testing.T) {
 		t.Errorf("TestDeleteSet failed @ ipsMgr.DeleteSet")
 	}
 
-	var (
-		val    = 0
-		newVal = 0
-		err    error
-	)
-	if testPrometheusToo {
-		val, err = metrics.GetValue("num_ipsets")
-		if err != nil {
-			printPrometheusError(t, "Problem getting http metrics")
-		}
+	val, err := metrics.GetValue("num_ipsets")
+	if err != nil {
+		t.Errorf("%v", err)
 	}
 
 	if err := ipsMgr.CreateSet("test-set", util.IpsetNetHashFlag); err != nil {
 		t.Errorf("TestCreateSet failed @ ipsMgr.CreateSet")
 	}
 
-	if testPrometheusToo {
-		newVal, err = metrics.GetValue("num_ipsets")
-		if err != nil {
-			printPrometheusError(t, "Problem getting http metrics")
-		}
-		if newVal != val-1 {
-			printPrometheusError(t, "Delete ipset didn't register in prometheus")
-		}
+	newVal, err := metrics.GetValue("num_ipsets")
+	if err != nil {
+		t.Errorf("%v", err)
+	}
+	if newVal != val-1 {
+		t.Errorf("Delete ipset didn't register in prometheus")
 	}
 }
 
