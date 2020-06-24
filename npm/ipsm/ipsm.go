@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/Azure/azure-container-networking/log"
+	"github.com/Azure/azure-container-networking/npm/metrics"
 	"github.com/Azure/azure-container-networking/npm/util"
 )
 
@@ -182,6 +183,8 @@ func (ipsMgr *IpsetManager) DeleteFromList(listName string, setName string) erro
 
 // CreateSet creates an ipset.
 func (ipsMgr *IpsetManager) CreateSet(setName, spec string) error {
+	timer := metrics.StartNewTimer()
+
 	if _, exists := ipsMgr.setMap[setName]; exists {
 		return nil
 	}
@@ -200,6 +203,9 @@ func (ipsMgr *IpsetManager) CreateSet(setName, spec string) error {
 	}
 
 	ipsMgr.setMap[setName] = NewIpset(setName)
+
+	metrics.Inc(metrics.NumIpSets)
+	timer.StopAndRecord(metrics.AddIpSetExecTime)
 
 	return nil
 }
@@ -230,6 +236,8 @@ func (ipsMgr *IpsetManager) DeleteSet(setName string) error {
 	}
 
 	delete(ipsMgr.setMap, setName)
+
+	metrics.Dec(metrics.NumIpSets)
 
 	return nil
 }
