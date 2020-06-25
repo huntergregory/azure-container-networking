@@ -1,0 +1,21 @@
+package metrics
+
+import "testing"
+
+func NotifyIfErrors(t *testing.T, errors ...error) {
+	allGood := true
+	for _, err := range errors {
+		if err != nil {
+			allGood = false
+			break
+		}
+	}
+	if !allGood {
+		t.Errorf("Encountered these errors while getting metric values: ")
+		for _, err := range errors {
+			if err != nil {
+				t.Errorf("%v", err)
+			}
+		}
+	}
+}
