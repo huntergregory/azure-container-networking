@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // var networkingRegistry *prometheus.Registery
@@ -74,23 +73,18 @@ func init() {
 	}
 }
 
-func GetHandler() http.Handler {
-	if handler == nil {
-		handler = promhttp.Handler()
-		// 	handler = promhttp.HandlerFor(networkingRegistry, promhttp.HandlerOpts{}) // promhttp.Handler()
-	}
-	return handler
-}
-
+// Observe records a value in the given summary
 func Observe(summary prometheus.Summary, value float64) {
 	summary.Observe(value)
 	// if changed to a vector, use summary.WithLabelValues(hostName).Observe(value)
 }
 
+// Inc increases a gauge by 1
 func Inc(gauge prometheus.Gauge) {
 	gauge.Inc()
 }
 
+// Dec decreases a gauge by 1
 func Dec(gauge prometheus.Gauge) {
 	gauge.Dec()
 }

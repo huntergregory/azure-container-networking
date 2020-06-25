@@ -9,29 +9,40 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var started = false
 
+const httpPort = ":8000"
+
+// StartHTTP starts a HTTP endpoint on port 8000. Metrics are exposed on the endpoint /metrics.
+// Set asGoRoutine to true if you want to be able to effectively run other code after calling this.
 func StartHTTP(asGoRoutine bool) {
 	if started {
 		return
 	}
 	started = true
 
-	http.Handle("/metrics", GetHandler())
-	http.HandleFunc("/hi", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hi!\n")
-	})
+	http.Handle("/metrics", getHandler())
 	if asGoRoutine {
-		go http.ListenAndServe(":8000", nil)
+		go http.ListenAndServe(httpPort, nil)
 	} else {
-		http.ListenAndServe(":8000", nil)
+		http.ListenAndServe(httpPort, nil)
 	}
 }
 
+// getHandler returns the HTTP handler for the metrics endpoint
+func getHandler() http.Handler {
+	if handler == nil {
+		handler = promhttp.Handler()
+		// 	handler = promhttp.HandlerFor(networkingRegistry, promhttp.HandlerOpts{}) // promhttp.Handler()
+	}
+	return handler
+}
+
 func getMetricsText() (string, error) {
-	response, err := http.Get("http://localhost:8000/metrics")
+	response, err := http.Get("http://localhost" + httpPort + "/metrics")
 	if err != nil {
 		return "", err
 	}
@@ -43,10 +54,12 @@ func getMetricsText() (string, error) {
 	return string(body), nil
 }
 
+// GetValue returns a gaugeMetric's value as shown in the HTML Prometheus endpoint.
 func GetValue(gaugeMetric prometheus.Collector) (int, error) {
 	return getMetricValue(allMetrics[gaugeMetric])
 }
 
+// GetCountValue returns the number of times a summaryMetric has recorded an observation as shown in the HTML Prometheus endpoint.
 func GetCountValue(summaryMetric prometheus.Collector) (int, error) {
 	return getMetricValue(allMetrics[summaryMetric] + "_count")
 }

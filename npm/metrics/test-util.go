@@ -2,6 +2,7 @@ package metrics
 
 import "testing"
 
+// NotifyIfErrors writes any non-nil errors to the testing utility
 func NotifyIfErrors(t *testing.T, errors ...error) {
 	allGood := true
 	for _, err := range errors {
