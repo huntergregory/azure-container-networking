@@ -7,6 +7,8 @@ import (
 )
 
 // file for testing metrics visually
+// view metrics in terminal with command:
+//   wget -qO- localhost:8000/metrics
 
 func main() {
 	messWithMetrics()
