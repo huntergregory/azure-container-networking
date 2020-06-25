@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 var started = false
@@ -41,7 +43,15 @@ func getMetricsText() (string, error) {
 	return string(body), nil
 }
 
-func GetValue(metricName string) (int, error) {
+func GetValue(gaugeMetric prometheus.Collector) (int, error) {
+	return getMetricValue(allMetrics[gaugeMetric])
+}
+
+func GetCountValue(summaryMetric prometheus.Collector) (int, error) {
+	return getMetricValue(allMetrics[summaryMetric] + "_count")
+}
+
+func getMetricValue(metricName string) (int, error) {
 	if !started {
 		StartHTTP(true)
 		time.Sleep(2 * time.Second)
