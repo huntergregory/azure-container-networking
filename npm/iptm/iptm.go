@@ -313,8 +313,8 @@ func (iptMgr *IptablesManager) Add(entry *IptEntry) error {
 		return err
 	}
 
-	metrics.Inc(metrics.NumIpTableRules)
-	timer.StopAndRecord(metrics.AddIpTableRuleExecTime)
+	metrics.Inc(metrics.NumIPTableRules)
+	timer.StopAndRecord(metrics.AddIPTableRuleExecTime)
 
 	return nil
 }
@@ -338,7 +338,7 @@ func (iptMgr *IptablesManager) Delete(entry *IptEntry) error {
 		return err
 	}
 
-	metrics.Dec(metrics.NumIpTableRules)
+	metrics.Dec(metrics.NumIPTableRules)
 
 	return nil
 }

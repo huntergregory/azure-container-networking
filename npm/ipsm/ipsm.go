@@ -204,8 +204,8 @@ func (ipsMgr *IpsetManager) CreateSet(setName string, spec []string) error {
 
 	ipsMgr.setMap[setName] = NewIpset(setName)
 
-	metrics.Inc(metrics.NumIpSets)
-	timer.StopAndRecord(metrics.AddIpSetExecTime)
+	metrics.Inc(metrics.NumIPSets)
+	timer.StopAndRecord(metrics.AddIPSetExecTime)
 
 	return nil
 }
@@ -233,7 +233,7 @@ func (ipsMgr *IpsetManager) DeleteSet(setName string) error {
 
 	delete(ipsMgr.setMap, setName)
 
-	metrics.Dec(metrics.NumIpSets)
+	metrics.Dec(metrics.NumIPSets)
 
 	return nil
 }
