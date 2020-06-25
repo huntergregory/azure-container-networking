@@ -39,7 +39,7 @@ func TestAddNetworkPolicy(t *testing.T) {
 	}
 
 	// Create ns-kube-system set
-	if err := ipsMgr.CreateSet("ns-"+util.KubeSystemFlag, util.IpsetNetHashFlag); err != nil {
+	if err := ipsMgr.CreateSet("ns-"+util.KubeSystemFlag, append([]string{util.IpsetNetHashFlag})); err != nil {
 		t.Errorf("TestAddNetworkPolicy failed @ ipsMgr.CreateSet, adding kube-system set%+v", err)
 	}
 
@@ -175,7 +175,7 @@ func TestUpdateNetworkPolicy(t *testing.T) {
 	}()
 
 	// Create ns-kube-system set
-	if err := ipsMgr.CreateSet("ns-"+util.KubeSystemFlag, util.IpsetNetHashFlag); err != nil {
+	if err := ipsMgr.CreateSet("ns-"+util.KubeSystemFlag, append([]string{util.IpsetNetHashFlag})); err != nil {
 		t.Errorf("TestUpdateNetworkPolicy failed @ ipsMgr.CreateSet, adding kube-system set%+v", err)
 	}
 
@@ -287,7 +287,7 @@ func TestDeleteNetworkPolicy(t *testing.T) {
 	}()
 
 	// Create ns-kube-system set
-	if err := ipsMgr.CreateSet("ns-"+util.KubeSystemFlag, util.IpsetNetHashFlag); err != nil {
+	if err := ipsMgr.CreateSet("ns-"+util.KubeSystemFlag, append([]string{util.IpsetNetHashFlag})); err != nil {
 		t.Errorf("TestDeleteNetworkPolicy failed @ ipsMgr.CreateSet, adding kube-system set%+v", err)
 	}
 
