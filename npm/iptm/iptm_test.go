@@ -160,7 +160,7 @@ func TestAdd(t *testing.T) {
 
 	newGaugeVal, err2 := metrics.GetValue(metrics.NumIPTableRules)
 	newCountVal, err4 := metrics.GetCountValue(metrics.AddIPTableRuleExecTime)
-	metrics.NotifyIfErrors(t, []error{err1, err2, err3, err4})
+	metrics.NotifyIfErrors(t, err1, err2, err3, err4)
 	if newGaugeVal != gaugeVal+1 {
 		t.Errorf("Change in iptable rule number didn't register in prometheus")
 	}
@@ -199,7 +199,7 @@ func TestDelete(t *testing.T) {
 	}
 
 	newGaugeVal, err2 := metrics.GetValue(metrics.NumIPTableRules)
-	metrics.NotifyIfErrors(t, []error{err1, err2})
+	metrics.NotifyIfErrors(t, err1, err2)
 	if newGaugeVal != gaugeVal-1 {
 		t.Errorf("Change in iptable rule number didn't register in prometheus")
 	}

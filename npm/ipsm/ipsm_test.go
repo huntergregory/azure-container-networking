@@ -142,7 +142,7 @@ func TestCreateSet(t *testing.T) {
 
 	newGaugeVal, err3 := metrics.GetValue(metrics.NumIPSets)
 	newCountVal, err4 := metrics.GetCountValue(metrics.AddIPSetExecTime)
-	metrics.NotifyIfErrors(t, []error{err1, err2, err3, err4})
+	metrics.NotifyIfErrors(t, err1, err2, err3, err4)
 	if newGaugeVal != gaugeVal+2 {
 		t.Errorf("Change in ipset number didn't register in prometheus")
 	}
@@ -174,7 +174,7 @@ func TestDeleteSet(t *testing.T) {
 	}
 
 	newGaugeVal, err2 := metrics.GetValue("num_ipsets")
-	metrics.NotifyIfErrors(t, []error{err1, err2})
+	metrics.NotifyIfErrors(t, err1, err2)
 	if newGaugeVal != gaugeVal-1 {
 		t.Errorf("Change in ipset number didn't register in prometheus")
 	}

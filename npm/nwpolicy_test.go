@@ -133,7 +133,7 @@ func TestAddNetworkPolicy(t *testing.T) {
 
 	newGaugeVal, err3 := metrics.GetValue(metrics.NumPolicies)
 	newCountVal, err4 := metrics.GetCountValue(metrics.AddPolicyExecTime)
-	metrics.NotifyIfErrors(t, []error{err1, err2, err3, err4})
+	metrics.NotifyIfErrors(t, err1, err2, err3, err4)
 	if newGaugeVal != gaugeVal+2 {
 		t.Errorf("Change in policy number didn't register in prometheus")
 	}
@@ -344,7 +344,7 @@ func TestDeleteNetworkPolicy(t *testing.T) {
 	npMgr.Unlock()
 
 	newGaugeVal, err2 := metrics.GetValue(metrics.NumPolicies)
-	metrics.NotifyIfErrors(t, []error{err1, err2})
+	metrics.NotifyIfErrors(t, err1, err2)
 	if newGaugeVal != gaugeVal-1 {
 		t.Errorf("Change in policy number didn't register in prometheus")
 	}
