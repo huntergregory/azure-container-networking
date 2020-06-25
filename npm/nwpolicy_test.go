@@ -137,7 +137,7 @@ func TestAddNetworkPolicy(t *testing.T) {
 	if newGaugeVal != gaugeVal+2 {
 		t.Errorf("Change in policy number didn't register in prometheus")
 	}
-	if newCountVal != countVal+1 {
+	if newCountVal != countVal+2 {
 		t.Errorf("Execution time didn't register in prometheus")
 	}
 }
