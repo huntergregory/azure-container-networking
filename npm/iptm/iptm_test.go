@@ -157,7 +157,7 @@ func TestAdd(t *testing.T) {
 		t.Errorf("TestAdd failed @ iptMgr.Add")
 	}
 
-	newGaugeVal, err2 := metrics.GetValue(metrics.NumIPTableRules)
+	newGaugeVal, err3 := metrics.GetValue(metrics.NumIPTableRules)
 	newCountVal, err4 := metrics.GetCountValue(metrics.AddIPTableRuleExecTime)
 	metrics.NotifyIfErrors(t, err1, err2, err3, err4)
 	if newGaugeVal != gaugeVal+1 {
