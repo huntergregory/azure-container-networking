@@ -16,6 +16,8 @@ var started = false
 
 const httpPort = ":8000"
 
+var handler http.Handler
+
 // StartHTTP starts a HTTP endpoint on port 8000. Metrics are exposed on the endpoint /metrics.
 // Set asGoRoutine to true if you want to be able to effectively run other code after calling this.
 func StartHTTP(asGoRoutine bool) {

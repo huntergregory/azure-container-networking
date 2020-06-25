@@ -1,8 +1,7 @@
 package metrics
 
 import (
-	"fmt"
-	"net/http"
+	"github.com/Azure/azure-container-networking/log"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -39,8 +38,6 @@ var allMetrics = map[prometheus.Collector]string{
 	AddIPSetExecTime:       addIPSetExecTimeLabel,
 }
 
-var handler http.Handler
-
 func createGauge(name string, helpMessage string) prometheus.Gauge {
 	return prometheus.NewGauge(
 		prometheus.GaugeOpts{
@@ -68,7 +65,7 @@ func init() {
 	for metric := range allMetrics {
 		err := prometheus.DefaultRegisterer.Register(metric)
 		if err != nil {
-			fmt.Printf("While registering a certain prometheus metric, an error occurred: %s", err)
+			log.Printf("While registering a certain prometheus metric, an error occurred: %s", err)
 		}
 	}
 }
