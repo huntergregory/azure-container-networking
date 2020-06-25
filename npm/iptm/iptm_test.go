@@ -151,21 +151,21 @@ func TestAdd(t *testing.T) {
 		},
 	}
 
-	val, err := metrics.GetValue("num_iptables_rules")
-	if err != nil {
-		t.Errorf("%v", err)
-	}
+	gaugeVal, err1 := metrics.GetValue(metrics.NumIPTableRules)
+	countVal, err2 := metrics.GetCountValue(metrics.AddIPTableRuleExecTime)
 
 	if err := iptMgr.Add(entry); err != nil {
 		t.Errorf("TestAdd failed @ iptMgr.Add")
 	}
 
-	newVal, err := metrics.GetValue("num_iptables_rules")
-	if err != nil {
-		t.Errorf("%v", err)
+	newGaugeVal, err2 := metrics.GetValue(metrics.NumIPTableRules)
+	newCountVal, err4 := metrics.GetCountValue(metrics.AddIPTableRuleExecTime)
+	metrics.NotifyIfErrors(t, []error{err1, err2, err3, err4})
+	if newGaugeVal != gaugeVal+1 {
+		t.Errorf("Change in iptable rule number didn't register in prometheus")
 	}
-	if newVal != val+1 {
-		t.Errorf("Add iptable rule didn't register in prometheus")
+	if newCountVal != countVal+1 {
+		t.Errorf("Execution time didn't register in prometheus")
 	}
 }
 
@@ -192,21 +192,16 @@ func TestDelete(t *testing.T) {
 		t.Errorf("TestDelete failed @ iptMgr.Add")
 	}
 
-	val, err := metrics.GetValue("num_iptables_rules")
-	if err != nil {
-		t.Errorf("%v", err)
-	}
+	gaugeVal, err1 := metrics.GetValue(metrics.NumIPTableRules)
 
 	if err := iptMgr.Delete(entry); err != nil {
 		t.Errorf("TestDelete failed @ iptMgr.Delete")
 	}
 
-	newVal, err := metrics.GetValue("num_iptables_rules")
-	if err != nil {
-		t.Errorf("%v", err)
-	}
-	if newVal != val-1 {
-		t.Errorf("Delete iptable rule didn't register in prometheus")
+	newGaugeVal, err2 := metrics.GetValue(metrics.NumIPTableRules)
+	metrics.NotifyIfErrors(t, []error{err1, err2})
+	if newGaugeVal != gaugeVal-1 {
+		t.Errorf("Change in iptable rule number didn't register in prometheus")
 	}
 }
 

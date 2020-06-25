@@ -128,10 +128,8 @@ func TestCreateSet(t *testing.T) {
 		}
 	}()
 
-	val, err := metrics.GetValue("num_ipsets")
-	if err != nil {
-		t.Errorf("%v", err)
-	}
+	gaugeVal, err1 := metrics.GetValue(metrics.NumIPSets)
+	countVal, err2 := metrics.GetCountValue(metrics.AddIPSetExecTime)
 
 	if err := ipsMgr.CreateSet("test-set", []string{util.IpsetNetHashFlag}); err != nil {
 		t.Errorf("TestCreateSet failed @ ipsMgr.CreateSet")
@@ -142,12 +140,14 @@ func TestCreateSet(t *testing.T) {
 		t.Errorf("TestCreateSet failed @ ipsMgr.CreateSet when set maxelem")
 	}
 
-	newVal, err := metrics.GetValue("num_ipsets")
-	if err != nil {
-		t.Errorf("%v", err)
+	newGaugeVal, err3 := metrics.GetValue(metrics.NumIPSets)
+	newCountVal, err4 := metrics.GetCountValue(metrics.AddIPSetExecTime)
+	metrics.NotifyIfErrors(t, []error{err1, err2, err3, err4})
+	if newGaugeVal != gaugeVal+2 {
+		t.Errorf("Change in ipset number didn't register in prometheus")
 	}
-	if newVal != val+2 {
-		t.Errorf("Create ipset didn't register in prometheus")
+	if newCountVal != countVal+1 {
+		t.Errorf("Execution time didn't register in prometheus")
 	}
 }
 
@@ -167,21 +167,16 @@ func TestDeleteSet(t *testing.T) {
 		t.Errorf("TestDeleteSet failed @ ipsMgr.CreateSet")
 	}
 
-	val, err := metrics.GetValue("num_ipsets")
-	if err != nil {
-		t.Errorf("%v", err)
-	}
+	gaugeVal, err1 := metrics.GetValue("num_ipsets")
 
 	if err := ipsMgr.DeleteSet("test-set"); err != nil {
 		t.Errorf("TestDeleteSet failed @ ipsMgr.DeleteSet")
 	}
 
-	newVal, err := metrics.GetValue("num_ipsets")
-	if err != nil {
-		t.Errorf("%v", err)
-	}
-	if newVal != val-1 {
-		t.Errorf("Delete ipset didn't register in prometheus")
+	newGaugeVal, err2 := metrics.GetValue("num_ipsets")
+	metrics.NotifyIfErrors(t, []error{err1, err2})
+	if newGaugeVal != gaugeVal-1 {
+		t.Errorf("Change in ipset number didn't register in prometheus")
 	}
 }
 

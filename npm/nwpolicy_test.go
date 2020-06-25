@@ -92,10 +92,8 @@ func TestAddNetworkPolicy(t *testing.T) {
 		},
 	}
 
-	val, err := metrics.GetValue("num_policies")
-	if err != nil {
-		t.Errorf("%v", err)
-	}
+	gaugeVal, err1 := metrics.GetValue(metrics.NumPolicies)
+	countVal, err2 := metrics.GetCountValue(metrics.AddPolicyExecTime)
 
 	npMgr.Lock()
 	if err := npMgr.AddNetworkPolicy(allowIngress); err != nil {
@@ -133,12 +131,14 @@ func TestAddNetworkPolicy(t *testing.T) {
 	}
 	npMgr.Unlock()
 
-	newVal, err := metrics.GetValue("num_policies")
-	if err != nil {
-		t.Errorf("%v", err)
+	newGaugeVal, err3 := metrics.GetValue(metrics.NumPolicies)
+	newCountVal, err4 := metrics.GetCountValue(metrics.AddPolicyExecTime)
+	metrics.NotifyIfErrors(t, []error{err1, err2, err3, err4})
+	if newGaugeVal != gaugeVal+2 {
+		t.Errorf("Change in policy number didn't register in prometheus")
 	}
-	if newVal != val+2 {
-		t.Errorf("Add newtork policy didn't register in prometheus")
+	if newCountVal != countVal+1 {
+		t.Errorf("Execution time didn't register in prometheus")
 	}
 }
 
@@ -336,21 +336,16 @@ func TestDeleteNetworkPolicy(t *testing.T) {
 		t.Errorf("TestAddNetworkPolicy failed @ AddNetworkPolicy")
 	}
 
-	val, err := metrics.GetValue("num_policies")
-	if err != nil {
-		t.Errorf("%v", err)
-	}
+	gaugeVal, err1 := metrics.GetValue(metrics.NumPolicies)
 
 	if err := npMgr.DeleteNetworkPolicy(allow); err != nil {
 		t.Errorf("TestDeleteNetworkPolicy failed @ DeleteNetworkPolicy")
 	}
 	npMgr.Unlock()
 
-	newVal, err := metrics.GetValue("num_policies")
-	if err != nil {
-		t.Errorf("%v", err)
-	}
-	if newVal != val-1 {
-		t.Errorf("Delete network policy didn't register in prometheus")
+	newGaugeVal, err2 := metrics.GetValue(metrics.NumPolicies)
+	metrics.NotifyIfErrors(t, []error{err1, err2})
+	if newGaugeVal != gaugeVal-1 {
+		t.Errorf("Change in policy number didn't register in prometheus")
 	}
 }
