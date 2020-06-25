@@ -11,70 +11,62 @@ import (
 // var networkingRegistry *prometheus.Registery
 // var hostName = os.Getenv("HOSTNAME")
 
-const tempHelp = "temporary help description" //TODO unique for each metric
 const namespace = "npm"
 
-// TODO add quantiles for summaries? remove quantiles?
-
 var (
-	NumPolicies = prometheus.NewGauge(
-		prometheus.GaugeOpts{
-			Namespace: namespace,
-			Name:      "num_policies",
-			// Help:      tempHelp,
-		},
-		//[]string{"node"},
-		// include labels in a slice like above if a vector
-	)
-
-	AddPolicyExecTime = prometheus.NewSummary(
-		prometheus.SummaryOpts{
-			Namespace: namespace,
-			Name:      "add_policy_exec_time",
-			// Help:       tempHelp,
-			Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001}, // TODO remove?
-		},
-	)
-
-	NumIpTableRules = prometheus.NewGauge(
-		prometheus.GaugeOpts{
-			Namespace: namespace,
-			Name:      "num_iptables_rules",
-			// Help:      tempHelp,
-		},
-	)
-
-	AddIpTableRuleExecTime = prometheus.NewSummary(
-		prometheus.SummaryOpts{
-			Namespace: namespace,
-			Name:      "add_iptables_rule_exec_time",
-			// Help:      tempHelp,
-		},
-	)
-
-	NumIpSets = prometheus.NewGauge(
-		prometheus.GaugeOpts{
-			Namespace: namespace,
-			Name:      "num_ipsets",
-			// Help:      tempHelp,
-		},
-	)
-
-	AddIpSetExecTime = prometheus.NewSummary(
-		prometheus.SummaryOpts{
-			Namespace: namespace,
-			Name:      "add_ipset_exec_time",
-			// Help:      tempHelp,
-		},
-	)
+	NumPolicies            = createGauge(numPoliciesLabel, "The number of current network policies for this node")
+	AddPolicyExecTime      = createSummary(addPolicyExecTimeLabel, "Execution time for adding a network policy")
+	NumIPTableRules        = createGauge(numPoliciesLabel, "The number of current IPTable rules for this node")
+	AddIPTableRuleExecTime = createSummary(addIPTableRuleExecTimeLabel, "Execution time for adding an IPTable rule to a chain")
+	NumIPSets              = createGauge(numIPSetsLabel, "The number of current IP sets for this node")
+	AddIPSetExecTime       = createSummary(addIPSetExecTimeLabel, "Execution time for creating an IP set")
 )
 
-var allMetrics = []prometheus.Collector{NumPolicies, AddPolicyExecTime, NumIpTableRules, AddIpTableRuleExecTime, NumIpSets, AddIpSetExecTime}
+const (
+	numPoliciesLabel            = "num_policies"
+	addPolicyExecTimeLabel      = "add_policy_exec_time"
+	numIPTableRules             = "num_iptables_rules"
+	addIPTableRuleExecTimeLabel = "add_iptables_rule_exec_time"
+	numIPSetsLabel              = "num_ipsets"
+	addIPSetExecTimeLabel       = "add_ipset_exec_time"
+)
+
+var allMetrics = map[prometheus.Collector]string{
+	NumPolicies:            numPoliciesLabel,
+	AddPolicyExecTime:      addPolicyExecTimeLabel,
+	NumIPTableRules:        numIPTableRules,
+	AddIPTableRuleExecTime: addIPTableRuleExecTimeLabel,
+	NumIPSets:              numIPSetsLabel,
+	AddIPSetExecTime:       addIPSetExecTimeLabel,
+}
+
 var handler http.Handler
+
+func createGauge(name string, helpMessage string) prometheus.Gauge {
+	return prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Namespace: namespace,
+			Name:      name,
+			Help:      helpMessage,
+		},
+		//[]string{"node"}, // include labels in a slice like this if creating Vectors
+	)
+}
+
+func createSummary(name string, helpMessage string) prometheus.Summary {
+	return prometheus.NewSummary(
+		prometheus.SummaryOpts{
+			Namespace: namespace,
+			Name:      name,
+			Help:      helpMessage,
+			// Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001}, // TODO add quantiles??
+		},
+	)
+}
 
 func init() {
 	// networkingRegistry = prometheus.NewRegistry()
-	for _, metric := range allMetrics {
+	for metric := range allMetrics {
 		err := prometheus.DefaultRegisterer.Register(metric)
 		if err != nil {
 			fmt.Printf("While registering a certain prometheus metric, an error occurred: %s", err)
