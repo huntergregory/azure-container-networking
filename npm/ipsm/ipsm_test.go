@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-container-networking/npm/metrics"
+	"github.com/Azure/azure-container-networking/npm/metrics/promutil"
 	"github.com/Azure/azure-container-networking/npm/util"
 )
 
@@ -128,8 +129,8 @@ func TestCreateSet(t *testing.T) {
 		}
 	}()
 
-	gaugeVal, err1 := metrics.GetValue(metrics.NumIPSets)
-	countVal, err2 := metrics.GetCountValue(metrics.AddIPSetExecTime)
+	gaugeVal, err1 := promutil.GetValue(metrics.NumIPSets)
+	countVal, err2 := promutil.GetCountValue(metrics.AddIPSetExecTime)
 
 	if err := ipsMgr.CreateSet("test-set", []string{util.IpsetNetHashFlag}); err != nil {
 		t.Errorf("TestCreateSet failed @ ipsMgr.CreateSet")
@@ -140,8 +141,8 @@ func TestCreateSet(t *testing.T) {
 		t.Errorf("TestCreateSet failed @ ipsMgr.CreateSet when set maxelem")
 	}
 
-	newGaugeVal, err3 := metrics.GetValue(metrics.NumIPSets)
-	newCountVal, err4 := metrics.GetCountValue(metrics.AddIPSetExecTime)
+	newGaugeVal, err3 := promutil.GetValue(metrics.NumIPSets)
+	newCountVal, err4 := promutil.GetCountValue(metrics.AddIPSetExecTime)
 	metrics.NotifyIfErrors(t, err1, err2, err3, err4)
 	if newGaugeVal != gaugeVal+2 {
 		t.Errorf("Change in ipset number didn't register in prometheus")
@@ -167,13 +168,13 @@ func TestDeleteSet(t *testing.T) {
 		t.Errorf("TestDeleteSet failed @ ipsMgr.CreateSet")
 	}
 
-	gaugeVal, err1 := metrics.GetValue(metrics.NumIPSets)
+	gaugeVal, err1 := promutil.GetValue(metrics.NumIPSets)
 
 	if err := ipsMgr.DeleteSet("test-set"); err != nil {
 		t.Errorf("TestDeleteSet failed @ ipsMgr.DeleteSet")
 	}
 
-	newGaugeVal, err2 := metrics.GetValue(metrics.NumIPSets)
+	newGaugeVal, err2 := promutil.GetValue(metrics.NumIPSets)
 	metrics.NotifyIfErrors(t, err1, err2)
 	if newGaugeVal != gaugeVal-1 {
 		t.Errorf("Change in ipset number didn't register in prometheus")
