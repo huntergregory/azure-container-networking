@@ -1,8 +1,6 @@
 package metrics
 
 import (
-	"github.com/Azure/azure-container-networking/log"
-
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -60,10 +58,6 @@ func createSummary(name string, helpMessage string) prometheus.Summary {
 func init() {
 	for metric := range allMetricNames {
 		prometheus.DefaultRegisterer.MustRegister(metric)
-		err := prometheus.DefaultRegisterer.Register(metric)
-		if err != nil {
-			log.Printf("While registering a certain prometheus metric, an error occurred: %s", err)
-		}
 	}
 }
 
