@@ -68,7 +68,7 @@ func main() {
 		panic(err.Error)
 	}
 
-	metrics.StartHTTP(false)
+	metrics.StartHTTP(false, 0)
 
 	select {}
 }

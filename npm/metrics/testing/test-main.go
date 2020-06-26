@@ -12,7 +12,7 @@ import (
 
 func main() {
 	messWithMetrics()
-	metrics.StartHTTP(false)
+	metrics.StartHTTP(false, 0)
 }
 
 func messWithMetrics() {
