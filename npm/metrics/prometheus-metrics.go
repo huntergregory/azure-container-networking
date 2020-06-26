@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-container-networking/log"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -29,7 +31,7 @@ const (
 	addIPSetExecTimeLabel       = "add_ipset_exec_time"
 )
 
-var allMetrics = map[prometheus.Collector]string{
+var allMetricNames = map[prometheus.Collector]string{
 	NumPolicies:            numPoliciesLabel,
 	AddPolicyExecTime:      addPolicyExecTimeLabel,
 	NumIPTableRules:        numIPTableRules,
@@ -62,12 +64,14 @@ func createSummary(name string, helpMessage string) prometheus.Summary {
 
 func init() {
 	// networkingRegistry = prometheus.NewRegistry()
-	for metric := range allMetrics {
+	for metric := range allMetricNames {
+		prometheus.DefaultRegisterer.MustRegister(metric)
 		err := prometheus.DefaultRegisterer.Register(metric)
 		if err != nil {
 			log.Printf("While registering a certain prometheus metric, an error occurred: %s", err)
 		}
 	}
+	fmt.Println("hey")
 }
 
 // Observe records a value in the given summary
@@ -84,4 +88,10 @@ func Inc(gauge prometheus.Gauge) {
 // Dec decreases a gauge by 1
 func Dec(gauge prometheus.Gauge) {
 	gauge.Dec()
+}
+
+// GetMetricName is for validation purposes. It returns the name representation of any metric registered in this file.
+// Returns an empty string if the metric is not declared and exported in this file.
+func GetMetricName(collector prometheus.Collector) string {
+	return allMetricNames[collector]
 }
