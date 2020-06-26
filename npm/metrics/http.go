@@ -40,7 +40,6 @@ func StartHTTP(asGoRoutine bool, delayAmountAfterStart int) {
 func getHandler() http.Handler {
 	if handler == nil {
 		handler = promhttp.Handler()
-		// 	handler = promhttp.HandlerFor(networkingRegistry, promhttp.HandlerOpts{}) // promhttp.Handler()
 	}
 	return handler
 }

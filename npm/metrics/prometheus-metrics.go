@@ -1,15 +1,10 @@
 package metrics
 
 import (
-	"fmt"
-
 	"github.com/Azure/azure-container-networking/log"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
-
-// var networkingRegistry *prometheus.Registery
-// var hostName = os.Getenv("HOSTNAME")
 
 const namespace = "npm"
 
@@ -54,16 +49,15 @@ func createGauge(name string, helpMessage string) prometheus.Gauge {
 func createSummary(name string, helpMessage string) prometheus.Summary {
 	return prometheus.NewSummary(
 		prometheus.SummaryOpts{
-			Namespace: namespace,
-			Name:      name,
-			Help:      helpMessage,
-			// Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001}, // TODO add quantiles??
+			Namespace:  namespace,
+			Name:       name,
+			Help:       helpMessage,
+			Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001}, //quantiles
 		},
 	)
 }
 
 func init() {
-	// networkingRegistry = prometheus.NewRegistry()
 	for metric := range allMetricNames {
 		prometheus.DefaultRegisterer.MustRegister(metric)
 		err := prometheus.DefaultRegisterer.Register(metric)
@@ -71,7 +65,6 @@ func init() {
 			log.Printf("While registering a certain prometheus metric, an error occurred: %s", err)
 		}
 	}
-	fmt.Println("hey")
 }
 
 // Observe records a value in the given summary
