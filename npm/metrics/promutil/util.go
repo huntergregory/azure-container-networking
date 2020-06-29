@@ -11,7 +11,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const delayAfterHTTPStart = 2
+const delayAfterHTTPStart = 10
 
 // GetValue is used for validation. It returns a gaugeMetric's value as shown in the HTML Prometheus endpoint.
 func GetValue(gaugeMetric prometheus.Collector) (int, error) {
