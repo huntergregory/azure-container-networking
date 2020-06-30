@@ -12,7 +12,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const delayAfterHTTPStart = 10
+const delayAfterHTTPStart = 80
 
 // NotifyIfErrors writes any non-nil errors to a testing utility
 func NotifyIfErrors(t *testing.T, errors ...error) {

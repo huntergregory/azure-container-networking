@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	// "github.com/Azure/azure-container-networking/log"
+
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -28,7 +30,12 @@ func StartHTTP(delayAmountAfterStart int) {
 	started = true
 
 	http.Handle(MetricsPath, getHandler())
-	go http.ListenAndServe(HTTPPort, nil)
+	go func() {
+		err := http.ListenAndServe(HTTPPort, nil))
+		if err != nil {
+			panic(err.Error)
+		}
+	}()
 	time.Sleep(time.Second * time.Duration(delayAmountAfterStart))
 }
 
