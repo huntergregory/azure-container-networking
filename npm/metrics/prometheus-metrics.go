@@ -8,11 +8,11 @@ const namespace = "npm"
 
 var (
 	NumPolicies            = createGauge(numPoliciesLabel, "The number of current network policies for this node")
-	AddPolicyExecTime      = createSummary(addPolicyExecTimeLabel, "Execution time for adding a network policy")
+	AddPolicyExecTime      = createSummary(addPolicyExecTimeLabel, "Execution time in milliseconds for adding a network policy")
 	NumIPTableRules        = createGauge(numIPTableRules, "The number of current IPTable rules for this node")
-	AddIPTableRuleExecTime = createSummary(addIPTableRuleExecTimeLabel, "Execution time for adding an IPTable rule to a chain")
+	AddIPTableRuleExecTime = createSummary(addIPTableRuleExecTimeLabel, "Execution time in milliseconds for adding an IPTable rule to a chain")
 	NumIPSets              = createGauge(numIPSetsLabel, "The number of current IP sets for this node")
-	AddIPSetExecTime       = createSummary(addIPSetExecTimeLabel, "Execution time for creating an IP set")
+	AddIPSetExecTime       = createSummary(addIPSetExecTimeLabel, "Execution time in milliseconds for creating an IP set")
 )
 
 const (
@@ -24,6 +24,7 @@ const (
 	addIPSetExecTimeLabel       = "add_ipset_exec_time"
 )
 
+// include any metric in this map
 var allMetricNames = map[prometheus.Collector]string{
 	NumPolicies:            numPoliciesLabel,
 	AddPolicyExecTime:      addPolicyExecTimeLabel,

@@ -14,7 +14,7 @@ type Timer struct {
 
 // StartNewTimer creates a new Timer
 func StartNewTimer() *Timer {
-	return &Timer{time.Now().Unix(), 0}
+	return &Timer{time.Now().UnixNano(), 0}
 }
 
 // StopAndRecord ends a timer and records its delta in a summary
@@ -23,14 +23,13 @@ func (timer *Timer) StopAndRecord(observer prometheus.Summary) {
 }
 
 func (timer *Timer) stop() {
-	timer.after = time.Now().Unix()
+	timer.after = time.Now().UnixNano()
 }
 
 func (timer *Timer) timeElapsed() float64 {
 	if timer.after == 0 {
 		timer.stop()
 	}
-	millisecondDifference := (timer.after - timer.before) / 1000000
-	secondDifference := float64(millisecondDifference) / 1000.0
-	return secondDifference
+	millisecondDifference := (timer.after - timer.before) / 1000000.0
+	return float64(millisecondDifference)
 }

@@ -6,15 +6,14 @@ import (
 	"github.com/Azure/azure-container-networking/npm/metrics"
 )
 
-// file for testing metrics visually
-// view metrics in terminal with command:
-//   wget -qO- localhost:8000/metrics
-
+// Run this file to test prometheus-metrics.go metrics visually.
+// View metrics in the command line with: wget -qO- localhost:8000/metrics
 func main() {
 	messWithMetrics()
 	metrics.StartHTTP(false, 0)
 }
 
+// Arbitrary changes that will bring noticeable changes between different wget responses.
 func messWithMetrics() {
 	go func() {
 		for {
