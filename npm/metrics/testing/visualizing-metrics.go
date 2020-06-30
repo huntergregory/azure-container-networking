@@ -10,7 +10,7 @@ import (
 // View metrics in the command line with: wget -qO- localhost:8000/metrics
 func main() {
 	messWithMetrics()
-	metrics.StartHTTP(false, 0)
+	metrics.StartHTTP(0)
 }
 
 // Arbitrary changes that will bring noticeable changes between different wget responses.

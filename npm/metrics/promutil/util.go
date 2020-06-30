@@ -44,7 +44,7 @@ func GetCountValue(summaryMetric prometheus.Collector) (int, error) {
 }
 
 func getMetricValue(metricName string) (int, error) {
-	metrics.StartHTTP(true, delayAfterHTTPStart)
+	metrics.StartHTTP(delayAfterHTTPStart)
 	regex := regexp.MustCompile(metricName + " [0-9]+")
 	if regex == nil {
 		return 0, fmt.Errorf("Couldn't compile regular expression for metric: " + metricName)

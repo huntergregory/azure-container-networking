@@ -18,21 +18,17 @@ const (
 var started = false
 var handler http.Handler
 
-// StartHTTP starts a HTTP server with endpoint on port 8000. Metrics are exposed on the endpoint /metrics.
-// Set asGoRoutine to true if you want to be able to effectively run other code after calling this.
+// StartHTTP starts a HTTP server in a Go routine with endpoint on port 8000. Metrics are exposed on the endpoint /metrics.
+// By being exposed, the metrics can be scraped by a Prometheus Server or Container Insights.
 // The function will pause for delayAmountAfterStart seconds after starting the HTTP server for the first time.
-func StartHTTP(asGoRoutine bool, delayAmountAfterStart int) {
+func StartHTTP(delayAmountAfterStart int) {
 	if started {
 		return
 	}
 	started = true
 
 	http.Handle(MetricsPath, getHandler())
-	if asGoRoutine {
-		go http.ListenAndServe(HTTPPort, nil)
-	} else {
-		http.ListenAndServe(HTTPPort, nil)
-	}
+	go http.ListenAndServe(HTTPPort, nil)
 	time.Sleep(time.Second * time.Duration(delayAmountAfterStart))
 }
 
