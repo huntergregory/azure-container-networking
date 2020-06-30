@@ -134,7 +134,7 @@ func TestAddNetworkPolicy(t *testing.T) {
 
 	newGaugeVal, err3 := promutil.GetValue(metrics.NumPolicies)
 	newCountVal, err4 := promutil.GetCountValue(metrics.AddPolicyExecTime)
-	metrics.NotifyIfErrors(t, err1, err2, err3, err4)
+	promutil.NotifyIfErrors(t, err1, err2, err3, err4)
 	if newGaugeVal != gaugeVal+2 {
 		t.Errorf("Change in policy number didn't register in prometheus")
 	}
@@ -345,7 +345,7 @@ func TestDeleteNetworkPolicy(t *testing.T) {
 	npMgr.Unlock()
 
 	newGaugeVal, err2 := promutil.GetValue(metrics.NumPolicies)
-	metrics.NotifyIfErrors(t, err1, err2)
+	promutil.NotifyIfErrors(t, err1, err2)
 	if newGaugeVal != gaugeVal-1 {
 		t.Errorf("Change in policy number didn't register in prometheus")
 	}

@@ -6,12 +6,32 @@ import (
 	"net/http"
 	"regexp"
 	"strconv"
+	"testing"
 
 	"github.com/Azure/azure-container-networking/npm/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 const delayAfterHTTPStart = 10
+
+// NotifyIfErrors writes any non-nil errors to a testing utility
+func NotifyIfErrors(t *testing.T, errors ...error) {
+	allGood := true
+	for _, err := range errors {
+		if err != nil {
+			allGood = false
+			break
+		}
+	}
+	if !allGood {
+		t.Errorf("Encountered these errors while getting metric values: ")
+		for _, err := range errors {
+			if err != nil {
+				t.Errorf("%v", err)
+			}
+		}
+	}
+}
 
 // GetValue is used for validation. It returns a gaugeMetric's value as shown in the HTML Prometheus endpoint.
 func GetValue(gaugeMetric prometheus.Collector) (int, error) {
