@@ -151,7 +151,6 @@ func (npMgr *NetworkPolicyManager) DeleteNetworkPolicy(npObj *networkingv1.Netwo
 		err   error
 		ns    *namespace
 		allNs = npMgr.nsMap[util.KubeAllNamespacesFlag]
-		// timer = metrics.StartNewTimer()
 	)
 
 	npNs, npName := "ns-"+npObj.ObjectMeta.Namespace, npObj.ObjectMeta.Name
@@ -203,7 +202,6 @@ func (npMgr *NetworkPolicyManager) DeleteNetworkPolicy(npObj *networkingv1.Netwo
 	}
 
 	metrics.Dec(metrics.NumPolicies)
-	// timer.StopAndRecord(metrics.RemovePolicyExecTime)
 
 	return nil
 }

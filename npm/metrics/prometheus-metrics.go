@@ -65,7 +65,6 @@ func init() {
 // Observe records a value in the given summary
 func Observe(summary prometheus.Summary, value float64) {
 	summary.Observe(value)
-	// if changed to a vector, use summary.WithLabelValues(hostName).Observe(value)
 }
 
 // Inc increases a gauge by 1
