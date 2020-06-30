@@ -31,7 +31,7 @@ func StartHTTP(delayAmountAfterStart int) {
 
 	http.Handle(MetricsPath, getHandler())
 	go func() {
-		err := http.ListenAndServe(HTTPPort, nil))
+		err := http.ListenAndServe(HTTPPort, nil)
 		if err != nil {
 			panic(err.Error)
 		}
