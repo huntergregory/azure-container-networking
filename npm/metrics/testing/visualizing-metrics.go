@@ -11,6 +11,7 @@ import (
 func main() {
 	messWithMetrics()
 	metrics.StartHTTP(0)
+	time.Sleep(time.Minute * 10)
 }
 
 // Arbitrary changes that will bring noticeable changes between different wget responses.
