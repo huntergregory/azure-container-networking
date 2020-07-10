@@ -371,12 +371,14 @@ test-all:
         ./ipam/ \
         ./log/ \
         ./netlink/ \
+        ./network/ \
         ./store/ \
         ./telemetry/ \
 		./aitelemetry/ \
         ./cnm/network/ \
         ./cni/ipam/ \
         ./cns/ipamclient/ \
+        ./cns/requestcontroller/kubecontroller/ \
         ./cnms/service/ \
         ./npm/iptm/ \
         ./npm/ipsm/
