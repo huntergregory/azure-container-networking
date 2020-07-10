@@ -24,18 +24,8 @@ const (
 	addIPSetExecTimeLabel       = "add_ipset_exec_time"
 )
 
-// include any metric in this map
-var allMetricNames = map[prometheus.Collector]string{
-	NumPolicies:            numPoliciesLabel,
-	AddPolicyExecTime:      addPolicyExecTimeLabel,
-	NumIPTableRules:        numIPTableRules,
-	AddIPTableRuleExecTime: addIPTableRuleExecTimeLabel,
-	NumIPSets:              numIPSetsLabel,
-	AddIPSetExecTime:       addIPSetExecTimeLabel,
-}
-
 func createGauge(name string, helpMessage string) prometheus.Gauge {
-	return prometheus.NewGauge(
+	gauge := prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Namespace: namespace,
 			Name:      name,
@@ -43,10 +33,12 @@ func createGauge(name string, helpMessage string) prometheus.Gauge {
 		},
 		//[]string{"node"}, // include labels in a slice like this if creating Vectors
 	)
+	prometheus.DefaultRegisterer.MustRegister(gauge)
+	return gauge
 }
 
 func createSummary(name string, helpMessage string) prometheus.Summary {
-	return prometheus.NewSummary(
+	summary := prometheus.NewSummary(
 		prometheus.SummaryOpts{
 			Namespace:  namespace,
 			Name:       name,
@@ -54,16 +46,6 @@ func createSummary(name string, helpMessage string) prometheus.Summary {
 			Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001}, //quantiles
 		},
 	)
-}
-
-func init() {
-	for metric := range allMetricNames {
-		prometheus.DefaultRegisterer.MustRegister(metric)
-	}
-}
-
-// GetMetricName is for validation purposes. It returns the name representation of any metric registered in this file.
-// Returns an empty string if the metric is not declared and exported in this file.
-func GetMetricName(collector prometheus.Collector) string {
-	return allMetricNames[collector]
+	prometheus.DefaultRegisterer.MustRegister(summary)
+	return summary
 }
