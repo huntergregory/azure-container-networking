@@ -26,8 +26,8 @@ func NotifyIfErrors(t *testing.T, errors ...error) {
 	}
 }
 
-// GetValue is used for validation. It returns a gaugeMetric's value.
-func GetValue(gaugeMetric prometheus.Collector) (int, error) {
+// GetValue is used for validation. It returns a Gauge metric's value.
+func GetValue(gaugeMetric prometheus.Gauge) (int, error) {
 	dtoMetric, err := getDTOMetric(gaugeMetric)
 	if err != nil {
 		return 0, err
@@ -35,8 +35,13 @@ func GetValue(gaugeMetric prometheus.Collector) (int, error) {
 	return int(dtoMetric.Gauge.GetValue()), nil
 }
 
-// GetCountValue is used for validation. It returns the number of times a summaryMetric has recorded an observation.
-func GetCountValue(summaryMetric prometheus.Collector) (int, error) {
+// GetVecValue is used for validation. It returns a Gauge Vec metric's value.
+func GetVecValue(gaugeVecMetric prometheus.GaugeVec, labels prometheus.Labels) (int, error) {
+	return GetValue(gaugeVecMetric.With(labels))
+}
+
+// GetCountValue is used for validation. It returns the number of times a Summary metric has recorded an observation.
+func GetCountValue(summaryMetric prometheus.Summary) (int, error) {
 	dtoMetric, err := getDTOMetric(summaryMetric)
 	if err != nil {
 		return 0, err

@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-container-networking/log"
 	"github.com/Azure/azure-container-networking/npm/metrics"
 	"github.com/Azure/azure-container-networking/npm/util"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type ipsEntry struct {
@@ -232,7 +233,7 @@ func (ipsMgr *IpsetManager) DeleteSet(setName string) error {
 	delete(ipsMgr.setMap, setName)
 
 	metrics.NumIPSets.Dec()
-	metrics.IPSetInventory.WithLabelValues(setName).Set(0)
+	metrics.IPSetInventory.With(prometheus.Labels{metrics.SetNameLabel: setName}).Set(0)
 
 	return nil
 }
@@ -278,7 +279,7 @@ func (ipsMgr *IpsetManager) AddToSet(setName, ip, spec, podUid string) error {
 	// Stores the podUid as the context for this ip.
 	ipsMgr.setMap[setName].elements[ip] = podUid
 
-	metrics.IPSetInventory.WithLabelValues(setName).Inc()
+	metrics.IPSetInventory.With(prometheus.Labels{metrics.SetNameLabel: setName}).Inc()
 
 	return nil
 }
@@ -321,7 +322,7 @@ func (ipsMgr *IpsetManager) DeleteFromSet(setName, ip, podUid string) error {
 	// Now cleanup the cache
 	delete(ipsMgr.setMap[setName].elements, ip)
 
-	metrics.IPSetInventory.WithLabelValues(setName).Dec()
+	metrics.IPSetInventory.With(prometheus.Labels{metrics.SetNameLabel: setName}).Dec()
 
 	if len(ipsMgr.setMap[setName].elements) == 0 {
 		ipsMgr.DeleteSet(setName)
