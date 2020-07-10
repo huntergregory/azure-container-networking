@@ -19,7 +19,7 @@ func StartNewTimer() *Timer {
 
 // StopAndRecord ends a timer and records its delta in a summary
 func (timer *Timer) StopAndRecord(observer prometheus.Summary) {
-	Observe(observer, timer.timeElapsed())
+	observer.Observe(timer.timeElapsed())
 }
 
 func (timer *Timer) stop() {

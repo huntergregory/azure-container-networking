@@ -129,7 +129,7 @@ func (npMgr *NetworkPolicyManager) AddNetworkPolicy(npObj *networkingv1.NetworkP
 		}
 	}
 
-	metrics.Inc(metrics.NumPolicies)
+	metrics.NumPolicies.Inc()
 	timer.StopAndRecord(metrics.AddPolicyExecTime)
 
 	return nil
@@ -201,7 +201,7 @@ func (npMgr *NetworkPolicyManager) DeleteNetworkPolicy(npObj *networkingv1.Netwo
 		}
 	}
 
-	metrics.Dec(metrics.NumPolicies)
+	metrics.NumPolicies.Dec()
 
 	return nil
 }

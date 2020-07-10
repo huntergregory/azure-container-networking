@@ -202,7 +202,7 @@ func (ipsMgr *IpsetManager) CreateSet(setName string, spec []string) error {
 
 	ipsMgr.setMap[setName] = NewIpset(setName)
 
-	metrics.Inc(metrics.NumIPSets)
+	metrics.NumIPSets.Inc()
 	timer.StopAndRecord(metrics.AddIPSetExecTime)
 
 	return nil
@@ -231,7 +231,8 @@ func (ipsMgr *IpsetManager) DeleteSet(setName string) error {
 
 	delete(ipsMgr.setMap, setName)
 
-	metrics.Dec(metrics.NumIPSets)
+	metrics.NumIPSets.Dec()
+	// TODO set count metric with setName label to 0
 
 	return nil
 }
@@ -277,6 +278,8 @@ func (ipsMgr *IpsetManager) AddToSet(setName, ip, spec, podUid string) error {
 	// Stores the podUid as the context for this ip.
 	ipsMgr.setMap[setName].elements[ip] = podUid
 
+	// TODO increment set count metric with setName label
+
 	return nil
 }
 
@@ -317,6 +320,8 @@ func (ipsMgr *IpsetManager) DeleteFromSet(setName, ip, podUid string) error {
 
 	// Now cleanup the cache
 	delete(ipsMgr.setMap[setName].elements, ip)
+
+	// TODO decrement set count metric with setName label
 
 	if len(ipsMgr.setMap[setName].elements) == 0 {
 		ipsMgr.DeleteSet(setName)
