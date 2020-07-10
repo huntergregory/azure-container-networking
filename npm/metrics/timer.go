@@ -30,6 +30,6 @@ func (timer *Timer) timeElapsed() float64 {
 	if timer.after == 0 {
 		timer.stop()
 	}
-	millisecondDifference := (timer.after - timer.before) / 1000000.0
-	return float64(millisecondDifference)
+	millisecondDifference := float64(timer.after-timer.before) / 1000000.0
+	return millisecondDifference
 }
