@@ -17,6 +17,7 @@ var (
 	AddIPTableRuleExecTime = createSummary(addIPTableRuleExecTimeLabel, addIPTableRuleExecTimeHelp)
 	NumIPSets              = createGauge(numIPSetsLabel, numIPSetsHelp)
 	AddIPSetExecTime       = createSummary(addIPSetExecTimeLabel, addIPSetExecTimeHelp)
+	IPSetInventory         = createGaugeVec(ipsetInventoryLabel, ipsetInventoryHelp)
 )
 
 const (
@@ -37,6 +38,9 @@ const (
 
 	addIPSetExecTimeLabel = "add_ipset_exec_time"
 	addIPSetExecTimeHelp  = "Execution time in milliseconds for creating an IP set"
+
+	ipsetCountsLabel = "ipset_counts"
+	ipsetCountsHelp  = "Number of entries in each individual IPSet"
 )
 
 func createGauge(name string, helpMessage string) prometheus.Gauge {
