@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"github.com/Azure/azure-container-networking/log"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -12,13 +13,13 @@ const namespace = "npm"
 // For any Vector metric, you can call With(prometheus.Labels) before the above methods
 //   e.g. SomeGaugeVec.With(prometheus.Labels{label1: val1, label2: val2, ...).Dec()
 var (
-	NumPolicies            = createGauge(numPoliciesName, numPoliciesHelp)
-	AddPolicyExecTime      = createSummary(addPolicyExecTimeName, addPolicyExecTimeHelp)
-	NumIPTableRules        = createGauge(numIPTableRulesName, numIPTableRulesHelp)
-	AddIPTableRuleExecTime = createSummary(addIPTableRuleExecTimeName, addIPTableRuleExecTimeHelp)
-	NumIPSets              = createGauge(numIPSetsName, numIPSetsHelp)
-	AddIPSetExecTime       = createSummary(addIPSetExecTimeName, addIPSetExecTimeHelp)
-	IPSetInventory         = createGaugeVec(ipsetInventoryName, ipsetInventoryHelp, SetNameLabel)
+	NumPolicies            prometheus.Gauge
+	AddPolicyExecTime      prometheus.Summary
+	NumIPTableRules        prometheus.Gauge
+	AddIPTableRuleExecTime prometheus.Summary
+	NumIPSets              prometheus.Gauge
+	AddIPSetExecTime       prometheus.Summary
+	IPSetInventory         *prometheus.GaugeVec
 )
 
 // Constants for metric names and descriptions as well as exported labels for Vector metrics
@@ -47,9 +48,28 @@ const (
 )
 
 var registry = prometheus.NewRegistry()
+var haveInitialized = false
 
-func register(collector prometheus.Collector) {
-	registry.MustRegister(collector)
+// InitializeAll creates all the Prometheus Metrics. The metrics will be nil before this method is called.
+func InitializeAll() {
+	if !haveInitialized {
+		NumPolicies = createGauge(numPoliciesName, numPoliciesHelp)
+		AddPolicyExecTime = createSummary(addPolicyExecTimeName, addPolicyExecTimeHelp)
+		NumIPTableRules = createGauge(numIPTableRulesName, numIPTableRulesHelp)
+		AddIPTableRuleExecTime = createSummary(addIPTableRuleExecTimeName, addIPTableRuleExecTimeHelp)
+		NumIPSets = createGauge(numIPSetsName, numIPSetsHelp)
+		AddIPSetExecTime = createSummary(addIPSetExecTimeName, addIPSetExecTimeHelp)
+		IPSetInventory = createGaugeVec(ipsetInventoryName, ipsetInventoryHelp, SetNameLabel)
+		log.Logf("Finished initializing all Prometheus metrics")
+		haveInitialized = true
+	}
+}
+
+func register(collector prometheus.Collector, name string) {
+	err := registry.Register(collector)
+	if err != nil {
+		log.Errorf("Error creating metric %s", name)
+	}
 }
 
 func createGauge(name string, helpMessage string) prometheus.Gauge {
@@ -60,7 +80,7 @@ func createGauge(name string, helpMessage string) prometheus.Gauge {
 			Help:      helpMessage,
 		},
 	)
-	register(gauge)
+	register(gauge, name)
 	return gauge
 }
 
@@ -73,7 +93,7 @@ func createGaugeVec(name string, helpMessage string, labels ...string) *promethe
 		},
 		labels,
 	)
-	register(gaugeVec)
+	register(gaugeVec, name)
 	return gaugeVec
 }
 
@@ -87,6 +107,6 @@ func createSummary(name string, helpMessage string) prometheus.Summary {
 			// quantiles e.g. the "0.5 quantile" will actually be the phi quantile for some phi in [0.5 - 0.05, 0.5 + 0.05]
 		},
 	)
-	register(summary)
+	register(summary, name)
 	return summary
 }

@@ -44,6 +44,8 @@ func main() {
 		panic(err.Error())
 	}
 
+	metrics.InitializeAll()
+
 	// Creates the in-cluster config
 	config, err := rest.InClusterConfig()
 	if err != nil {
