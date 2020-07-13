@@ -205,6 +205,7 @@ func (ipsMgr *IpsetManager) CreateSet(setName string, spec []string) error {
 
 	metrics.NumIPSets.Inc()
 	timer.StopAndRecord(metrics.AddIPSetExecTime)
+	metrics.IPSetInventory.With(prometheus.Labels{metrics.SetNameLabel: setName}).Set(0)
 
 	return nil
 }
