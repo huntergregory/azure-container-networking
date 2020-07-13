@@ -375,6 +375,8 @@ func (ipsMgr *IpsetManager) Destroy() error {
 		return err
 	}
 
+	//TODO set metrics.IPSetInventory to 0 for all set names
+
 	return nil
 }
 
@@ -438,6 +440,8 @@ func (ipsMgr *IpsetManager) Restore(configFile string) error {
 		return err
 	}
 	cmd.Wait()
+
+	//TODO based on the set name and number of entries in the config file, update metrics.IPSetInventory
 
 	return nil
 }
