@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Azure/azure-container-networking/log"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -28,6 +29,7 @@ func StartHTTP(delayAmountAfterStart int) {
 	started = true
 
 	http.Handle(MetricsPath, getHandler())
+	log.Logf("Starting Prometheus HTTP Server")
 	go http.ListenAndServe(HTTPPort, nil)
 	time.Sleep(time.Second * time.Duration(delayAmountAfterStart))
 }
@@ -35,7 +37,7 @@ func StartHTTP(delayAmountAfterStart int) {
 // getHandler returns the HTTP handler for the metrics endpoint
 func getHandler() http.Handler {
 	if handler == nil {
-		handler = promhttp.Handler()
+		handler = promhttp.HandlerFor(registry, promhttp.HandlerOpts{})
 	}
 	return handler
 }

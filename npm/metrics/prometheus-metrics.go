@@ -46,6 +46,12 @@ const (
 	SetNameLabel       = "set_name"
 )
 
+var registry = prometheus.NewRegistry()
+
+func register(collector prometheus.Collector) {
+	registry.MustRegister(collector)
+}
+
 func createGauge(name string, helpMessage string) prometheus.Gauge {
 	gauge := prometheus.NewGauge(
 		prometheus.GaugeOpts{
@@ -54,7 +60,7 @@ func createGauge(name string, helpMessage string) prometheus.Gauge {
 			Help:      helpMessage,
 		},
 	)
-	prometheus.DefaultRegisterer.MustRegister(gauge)
+	register(gauge)
 	return gauge
 }
 
@@ -67,7 +73,7 @@ func createGaugeVec(name string, helpMessage string, labels ...string) *promethe
 		},
 		labels,
 	)
-	prometheus.DefaultRegisterer.MustRegister(gaugeVec)
+	register(gaugeVec)
 	return gaugeVec
 }
 
@@ -81,6 +87,6 @@ func createSummary(name string, helpMessage string) prometheus.Summary {
 			// quantiles e.g. the "0.5 quantile" will actually be the phi quantile for some phi in [0.5 - 0.05, 0.5 + 0.05]
 		},
 	)
-	prometheus.DefaultRegisterer.MustRegister(summary)
+	register(summary)
 	return summary
 }
