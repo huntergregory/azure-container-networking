@@ -226,6 +226,7 @@ func TestRun(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
+	metrics.InitializeAll()
 	iptMgr := NewIptablesManager()
 	iptMgr.Save(util.IptablesConfigFile)
 
