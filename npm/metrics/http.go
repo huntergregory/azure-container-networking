@@ -10,7 +10,7 @@ import (
 
 const (
 	// HTTPPort is the port used by the HTTP server (includes a preceding colon)
-	HTTPPort = ":8000"
+	HTTPPort = ":10091"
 
 	//MetricsPath is the path for the Prometheus metrics endpoint (includes preceding slash)
 	MetricsPath = "/metrics"

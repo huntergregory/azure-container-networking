@@ -68,7 +68,7 @@ spec:
       annotations:
         scheduler.alpha.kubernetes.io/critical-pod: ''
         prometheus.io/scrape: "true"
-        prometheus.io/port:   "8000"
+        prometheus.io/port:   "10091"
     spec:
       priorityClassName: system-node-critical
       tolerations:
@@ -83,7 +83,7 @@ spec:
         kubernetes.io/role: agent
       containers:
         - name: azure-npm
-          image: mcr.microsoft.com/containernetworking/azure-npm:v1.1.4
+          image: mcr.microsoft.com/containernetworking/azure-npm:v1.1.5
           securityContext:
             privileged: true
           env:
