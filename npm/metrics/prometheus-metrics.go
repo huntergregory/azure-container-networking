@@ -19,7 +19,10 @@ var (
 	AddIPTableRuleExecTime prometheus.Summary
 	NumIPSets              prometheus.Gauge
 	AddIPSetExecTime       prometheus.Summary
-	IPSetInventory         *prometheus.GaugeVec
+	NumIPSetEntries        prometheus.Gauge
+
+	// IPSetInventory should not be referenced directly. Use the functions in ipset-inventory.go
+	IPSetInventory *prometheus.GaugeVec
 )
 
 // Constants for metric names and descriptions as well as exported labels for Vector metrics
@@ -42,8 +45,11 @@ const (
 	addIPSetExecTimeName = "add_ipset_exec_time"
 	addIPSetExecTimeHelp = "Execution time in milliseconds for creating an IP set"
 
+	numIPSetEntriesName = "num_ipset_entries"
+	numIPSetEntriesHelp = "The total number of entries in every IPSet"
+
 	ipsetInventoryName = "ipset_counts"
-	ipsetInventoryHelp = "Number of entries in each individual IPSet"
+	ipsetInventoryHelp = "The number of entries in each individual IPSet"
 	SetNameLabel       = "set_name"
 )
 
@@ -59,6 +65,7 @@ func InitializeAll() {
 		AddIPTableRuleExecTime = createSummary(addIPTableRuleExecTimeName, addIPTableRuleExecTimeHelp)
 		NumIPSets = createGauge(numIPSetsName, numIPSetsHelp)
 		AddIPSetExecTime = createSummary(addIPSetExecTimeName, addIPSetExecTimeHelp)
+		NumIPSetEntries = createGauge(numIPSetEntriesName, numIPSetEntriesHelp)
 		IPSetInventory = createGaugeVec(ipsetInventoryName, ipsetInventoryHelp, SetNameLabel)
 		log.Logf("Finished initializing all Prometheus metrics")
 		haveInitialized = true

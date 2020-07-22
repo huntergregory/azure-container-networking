@@ -148,14 +148,15 @@ func TestCreateSet(t *testing.T) {
 	newCountVal, err4 := promutil.GetCountValue(metrics.AddIPSetExecTime)
 	testSet1Count, err5 := promutil.GetVecValue(metrics.IPSetInventory, prometheus.Labels{metrics.SetNameLabel: testSet1Name})
 	testSet2Count, err6 := promutil.GetVecValue(metrics.IPSetInventory, prometheus.Labels{metrics.SetNameLabel: testSet2Name})
-	promutil.NotifyIfErrors(t, err1, err2, err3, err4, err5, err6)
+	entryCount, err7 := promutil.GetValue(metrics.NumIPSetEntries)
+	promutil.NotifyIfErrors(t, err1, err2, err3, err4, err5, err6, err7)
 	if newGaugeVal != gaugeVal+2 {
 		t.Errorf("Change in ipset number didn't register in Prometheus")
 	}
 	if newCountVal != countVal+2 {
 		t.Errorf("Execution time didn't register in Prometheus")
 	}
-	if testSet1Count != 0 || testSet2Count != 0 {
+	if testSet1Count != 0 || testSet2Count != 0 || entryCount != 0 {
 		t.Errorf("Prometheus IPSet count has incorrect number of entries")
 	}
 }
@@ -185,11 +186,12 @@ func TestDeleteSet(t *testing.T) {
 
 	newGaugeVal, err2 := promutil.GetValue(metrics.NumIPSets)
 	testSetCount, err3 := promutil.GetVecValue(metrics.IPSetInventory, prometheus.Labels{metrics.SetNameLabel: testSetName})
-	promutil.NotifyIfErrors(t, err1, err2, err3)
+	entryCount, err4 := promutil.GetValue(metrics.NumIPSetEntries)
+	promutil.NotifyIfErrors(t, err1, err2, err3, err4)
 	if newGaugeVal != gaugeVal-1 {
 		t.Errorf("Change in ipset number didn't register in prometheus")
 	}
-	if testSetCount != 0 {
+	if testSetCount != 0 || entryCount != 0 {
 		t.Errorf("Prometheus IPSet count has incorrect number of entries")
 	}
 }
@@ -216,8 +218,9 @@ func TestAddToSet(t *testing.T) {
 	}
 
 	testSetCount, err1 := promutil.GetVecValue(metrics.IPSetInventory, prometheus.Labels{metrics.SetNameLabel: testSetName})
-	promutil.NotifyIfErrors(t, err1)
-	if testSetCount != 2 {
+	entryCount, err2 := promutil.GetValue(metrics.NumIPSetEntries)
+	promutil.NotifyIfErrors(t, err1, err2)
+	if testSetCount != 2 || entryCount != 2 {
 		t.Errorf("Prometheus IPSet count has incorrect number of entries")
 	}
 }
@@ -263,6 +266,7 @@ func TestAddToSetWithCachePodInfo(t *testing.T) {
 }
 
 func TestDeleteFromSet(t *testing.T) {
+	metrics.NumIPSetEntries.Set(0)
 	ipsMgr := NewIpsetManager()
 	if err := ipsMgr.Save(util.IpsetTestConfigFile); err != nil {
 		t.Errorf("TestDeleteFromSet failed @ ipsMgr.Save")
@@ -293,9 +297,10 @@ func TestDeleteFromSet(t *testing.T) {
 	}
 
 	testSetCount, err1 := promutil.GetVecValue(metrics.IPSetInventory, prometheus.Labels{metrics.SetNameLabel: testSetName})
-	promutil.NotifyIfErrors(t, err1)
-	if testSetCount != 0 {
-		t.Errorf("Prometheus IPSet count has incorrect number of entries")
+	entryCount, err2 := promutil.GetValue(metrics.NumIPSetEntries)
+	promutil.NotifyIfErrors(t, err1, err2)
+	if testSetCount != 0 || entryCount != 0 {
+		t.Errorf("Prometheus IPSet count has incorrect number of entries %v", entryCount)
 	}
 }
 
