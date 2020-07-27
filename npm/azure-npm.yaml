@@ -114,3 +114,17 @@ spec:
           path: /etc/protocols
           type: File
       serviceAccountName: azure-npm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: npm-metrics-cluster-service
+  namespace: kube-system
+  labels:
+    app: npm-metrics
+spec:
+  selector:
+    k8s-app: azure-npm
+  ports:
+    - port: 9000
+      targetPort: 10091
