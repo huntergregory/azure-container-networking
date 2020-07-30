@@ -3,6 +3,7 @@
 package ipsm
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -119,6 +120,7 @@ func TestDeleteFromList(t *testing.T) {
 }
 
 func TestCreateSet(t *testing.T) {
+	metrics.NumIPSetEntries.Set(0)
 	ipsMgr := NewIpsetManager()
 	if err := ipsMgr.Save(util.IpsetTestConfigFile); err != nil {
 		t.Errorf("TestCreateSet failed @ ipsMgr.Save")
@@ -144,24 +146,35 @@ func TestCreateSet(t *testing.T) {
 		t.Errorf("TestCreateSet failed @ ipsMgr.CreateSet when set maxelem")
 	}
 
+	testSet3Name := "test-set-with-port"
+	spec = append([]string{util.IpsetIPPortHashFlag})
+	if err := ipsMgr.CreateSet(testSet3Name, spec); err != nil {
+		t.Errorf("TestCreateSet failed @ ipsMgr.CreateSet when creating port set")
+	}
+	if err := ipsMgr.AddToSet(testSet3Name, fmt.Sprintf("%s,%s%d", "1.1.1.1", "tcp", 8080), util.IpsetIPPortHashFlag, "0"); err != nil {
+		t.Errorf("AddToSet failed @ ipsMgr.CreateSet when set port")
+	}
+
 	newGaugeVal, err3 := promutil.GetValue(metrics.NumIPSets)
 	newCountVal, err4 := promutil.GetCountValue(metrics.AddIPSetExecTime)
 	testSet1Count, err5 := promutil.GetVecValue(metrics.IPSetInventory, prometheus.Labels{metrics.SetNameLabel: testSet1Name})
 	testSet2Count, err6 := promutil.GetVecValue(metrics.IPSetInventory, prometheus.Labels{metrics.SetNameLabel: testSet2Name})
-	entryCount, err7 := promutil.GetValue(metrics.NumIPSetEntries)
-	promutil.NotifyIfErrors(t, err1, err2, err3, err4, err5, err6, err7)
-	if newGaugeVal != gaugeVal+2 {
+	testSet3Count, err7 := promutil.GetVecValue(metrics.IPSetInventory, prometheus.Labels{metrics.SetNameLabel: testSet3Name})
+	entryCount, err8 := promutil.GetValue(metrics.NumIPSetEntries)
+	promutil.NotifyIfErrors(t, err1, err2, err3, err4, err5, err6, err7, err8)
+	if newGaugeVal != gaugeVal+3 {
 		t.Errorf("Change in ipset number didn't register in Prometheus")
 	}
-	if newCountVal != countVal+2 {
+	if newCountVal != countVal+3 {
 		t.Errorf("Execution time didn't register in Prometheus")
 	}
-	if testSet1Count != 0 || testSet2Count != 0 || entryCount != 0 {
+	if testSet1Count != 0 || testSet2Count != 0 || testSet3Count != 1 || entryCount != 1 {
 		t.Errorf("Prometheus IPSet count has incorrect number of entries")
 	}
 }
 
 func TestDeleteSet(t *testing.T) {
+	metrics.NumIPSetEntries.Set(0)
 	ipsMgr := NewIpsetManager()
 	if err := ipsMgr.Save(util.IpsetTestConfigFile); err != nil {
 		t.Errorf("TestDeleteSet failed @ ipsMgr.Save")
@@ -197,6 +210,7 @@ func TestDeleteSet(t *testing.T) {
 }
 
 func TestAddToSet(t *testing.T) {
+	metrics.NumIPSetEntries.Set(0)
 	ipsMgr := NewIpsetManager()
 	if err := ipsMgr.Save(util.IpsetTestConfigFile); err != nil {
 		t.Errorf("TestAddToSet failed @ ipsMgr.Save")
