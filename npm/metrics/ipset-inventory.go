@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"github.com/Azure/azure-container-networking/npm/util"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -43,8 +44,13 @@ func DecIPSetInventory(setName string) {
 	}
 }
 
+// GetIPSetInventoryLabels returns the labels for the IPSetInventory GaugeVec for a given setName.
+func GetIPSetInventoryLabels(setName string) prometheus.Labels {
+	return prometheus.Labels{SetNameLabel: setName, SetHashLabel: util.GetHashedName(setName)}
+}
+
 func updateIPSetInventory(setName string) {
-	labels := prometheus.Labels{SetNameLabel: setName}
+	labels := GetIPSetInventoryLabels(setName)
 	if ipsetInventoryMap[setName] == 0 {
 		IPSetInventory.Delete(labels)
 		delete(ipsetInventoryMap, setName)
