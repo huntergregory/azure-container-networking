@@ -51,6 +51,7 @@ const (
 	ipsetInventoryName = "ipset_counts"
 	ipsetInventoryHelp = "The number of entries in each individual IPSet"
 	SetNameLabel       = "set_name"
+	SetHashLabel       = "set_hash"
 )
 
 var nodeLevelRegistry = prometheus.NewRegistry()
@@ -67,7 +68,7 @@ func InitializeAll() {
 		NumIPSets = createGauge(numIPSetsName, numIPSetsHelp, false)
 		AddIPSetExecTime = createSummary(addIPSetExecTimeName, addIPSetExecTimeHelp, true)
 		NumIPSetEntries = createGauge(numIPSetEntriesName, numIPSetEntriesHelp, false)
-		IPSetInventory = createGaugeVec(ipsetInventoryName, ipsetInventoryHelp, false, SetNameLabel)
+		IPSetInventory = createGaugeVec(ipsetInventoryName, ipsetInventoryHelp, false, SetNameLabel, SetHashLabel)
 		log.Logf("Finished initializing all Prometheus metrics")
 		haveInitialized = true
 	}

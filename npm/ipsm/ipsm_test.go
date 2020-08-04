@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/azure-container-networking/npm/metrics"
 	"github.com/Azure/azure-container-networking/npm/metrics/promutil"
 	"github.com/Azure/azure-container-networking/npm/util"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 func TestSave(t *testing.T) {
@@ -157,9 +156,9 @@ func TestCreateSet(t *testing.T) {
 
 	newGaugeVal, err3 := promutil.GetValue(metrics.NumIPSets)
 	newCountVal, err4 := promutil.GetCountValue(metrics.AddIPSetExecTime)
-	testSet1Count, err5 := promutil.GetVecValue(metrics.IPSetInventory, prometheus.Labels{metrics.SetNameLabel: testSet1Name})
-	testSet2Count, err6 := promutil.GetVecValue(metrics.IPSetInventory, prometheus.Labels{metrics.SetNameLabel: testSet2Name})
-	testSet3Count, err7 := promutil.GetVecValue(metrics.IPSetInventory, prometheus.Labels{metrics.SetNameLabel: testSet3Name})
+	testSet1Count, err5 := promutil.GetVecValue(metrics.IPSetInventory, metrics.GetIPSetInventoryLabels(testSet1Name))
+	testSet2Count, err6 := promutil.GetVecValue(metrics.IPSetInventory, metrics.GetIPSetInventoryLabels(testSet2Name))
+	testSet3Count, err7 := promutil.GetVecValue(metrics.IPSetInventory, metrics.GetIPSetInventoryLabels(testSet3Name))
 	entryCount, err8 := promutil.GetValue(metrics.NumIPSetEntries)
 	promutil.NotifyIfErrors(t, err1, err2, err3, err4, err5, err6, err7, err8)
 	if newGaugeVal != gaugeVal+3 {
@@ -198,7 +197,7 @@ func TestDeleteSet(t *testing.T) {
 	}
 
 	newGaugeVal, err2 := promutil.GetValue(metrics.NumIPSets)
-	testSetCount, err3 := promutil.GetVecValue(metrics.IPSetInventory, prometheus.Labels{metrics.SetNameLabel: testSetName})
+	testSetCount, err3 := promutil.GetVecValue(metrics.IPSetInventory, metrics.GetIPSetInventoryLabels(testSetName))
 	entryCount, err4 := promutil.GetValue(metrics.NumIPSetEntries)
 	promutil.NotifyIfErrors(t, err1, err2, err3, err4)
 	if newGaugeVal != gaugeVal-1 {
@@ -231,7 +230,7 @@ func TestAddToSet(t *testing.T) {
 		t.Errorf("TestAddToSet with nomatch failed @ ipsMgr.AddToSet")
 	}
 
-	testSetCount, err1 := promutil.GetVecValue(metrics.IPSetInventory, prometheus.Labels{metrics.SetNameLabel: testSetName})
+	testSetCount, err1 := promutil.GetVecValue(metrics.IPSetInventory, metrics.GetIPSetInventoryLabels(testSetName))
 	entryCount, err2 := promutil.GetValue(metrics.NumIPSetEntries)
 	promutil.NotifyIfErrors(t, err1, err2)
 	if testSetCount != 2 || entryCount != 2 {
@@ -310,7 +309,7 @@ func TestDeleteFromSet(t *testing.T) {
 		t.Errorf("TestDeleteFromSet failed @ ipsMgr.DeleteFromSet")
 	}
 
-	testSetCount, err1 := promutil.GetVecValue(metrics.IPSetInventory, prometheus.Labels{metrics.SetNameLabel: testSetName})
+	testSetCount, err1 := promutil.GetVecValue(metrics.IPSetInventory, metrics.GetIPSetInventoryLabels(testSetName))
 	entryCount, err2 := promutil.GetValue(metrics.NumIPSetEntries)
 	promutil.NotifyIfErrors(t, err1, err2)
 	if testSetCount != 0 || entryCount != 0 {
