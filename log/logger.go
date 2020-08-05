@@ -151,7 +151,7 @@ func (logger *Logger) getLogFileName() string {
 	return logFileName
 }
 
-const base = "azure-container-networking"
+const base = "azure-container-networking" // TODO does this work in production?
 const errorFormat = "Couldn't set component name of logger with problem: %s in path %s"
 
 func getFolderDelimiter() string {
@@ -175,7 +175,7 @@ func (logger *Logger) SetComponentName(pc uintptr, fileName string, line int, ok
 		return
 	}
 	folderExpression := regexp.MustCompile(getFolderDelimiter())
-	slashIndices := folderExpression.FindAllStringIndex(fileName, -1) //TODO handle non-Linux paths
+	slashIndices := folderExpression.FindAllStringIndex(fileName, -1)
 	if slashIndices == nil {
 		logger.WriteToLog(LevelInfo, errorFormat, "couldn't find any repo subfolders", fileName)
 		return
@@ -187,15 +187,6 @@ func (logger *Logger) SetComponentName(pc uintptr, fileName string, line int, ok
 		return
 	}
 	logger.componentName = fileName[endOfFirst:startOfLast]
-
-	//TODO remove
-	// if executableError == nil {
-	// 	path, err := filepath.EvalSymlinks(filepath.Dir(executableString))
-	// 	if err == nil {
-	// 		logger.componentName = path //TODO shorten path
-	// 	}
-	// }
-	// //TODO something about the errors if not nil
 }
 
 // Rotate checks the active log file size and rotates log files if necessary.
