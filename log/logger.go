@@ -194,7 +194,7 @@ func (logger *Logger) SetComponentName(pc uintptr, fileName string, line int, ok
 // Rotate checks the active log file size and rotates log files if necessary.
 func (logger *Logger) rotate() {
 	// Return if target is not a log file.
-	if logger.target != TargetLogfile || logger.out == nil {
+	if (logger.target != TargetLogfile && logger.target != TargetStdOutAndLogFile) || logger.out == nil {
 		return
 	}
 

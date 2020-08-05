@@ -47,7 +47,7 @@ type NetworkPolicyManager struct {
 
 	nodeName                     string
 	nsMap                        map[string]*namespace
-	podMap                       map[string]bool
+	podMap                       map[string]string // Key: Pod uuid, Value: PodIp
 	isAzureNpmChainCreated       bool
 	isSafeToCleanUpAzureNpmChain bool
 
@@ -234,7 +234,7 @@ func NewNetworkPolicyManager(clientset *kubernetes.Clientset, informerFactory in
 		npInformer:                   npInformer,
 		nodeName:                     os.Getenv("HOSTNAME"),
 		nsMap:                        make(map[string]*namespace),
-		podMap:                       make(map[string]bool),
+		podMap:                       make(map[string]string),
 		isAzureNpmChainCreated:       false,
 		isSafeToCleanUpAzureNpmChain: false,
 		clusterState: telemetry.ClusterState{
@@ -252,7 +252,7 @@ func NewNetworkPolicyManager(clientset *kubernetes.Clientset, informerFactory in
 
 	// Create ipset for the namespace.
 	kubeSystemNs := "ns-" + util.KubeSystemFlag
-	if err := allNs.ipsMgr.CreateSet(kubeSystemNs, util.IpsetNetHashFlag); err != nil {
+	if err := allNs.ipsMgr.CreateSet(kubeSystemNs, append([]string{util.IpsetNetHashFlag})); err != nil {
 		log.Logf("Error: failed to create ipset for namespace %s.", kubeSystemNs)
 	}
 

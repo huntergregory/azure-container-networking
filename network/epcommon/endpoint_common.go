@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/Azure/azure-container-networking/common"
 	"github.com/Azure/azure-container-networking/iptables"
 	"github.com/Azure/azure-container-networking/log"
 	"github.com/Azure/azure-container-networking/netlink"
@@ -31,6 +32,8 @@ const (
 	enableIPForwardCmd   = "sysctl -w net.ipv4.ip_forward=1"
 	toggleIPV6Cmd        = "sysctl -w net.ipv6.conf.all.disable_ipv6=%d"
 	enableIPV6ForwardCmd = "sysctl -w net.ipv6.conf.all.forwarding=1"
+	disableRACmd         = "sysctl -w net.ipv6.conf.%s.accept_ra=0"
+	acceptRAV6File       = "/proc/sys/net/ipv6/conf/%s/accept_ra"
 )
 
 func getPrivateIPSpace() []string {
@@ -71,6 +74,10 @@ func CreateEndpoint(hostVethName string, containerVethName string) error {
 		return err
 	}
 
+	if err := DisableRAForInterface(hostVethName); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -84,6 +91,10 @@ func SetupContainerInterface(containerVethName string, targetIfName string) erro
 	// Rename the container interface.
 	log.Printf("[net] Setting link %v name %v.", containerVethName, targetIfName)
 	if err := netlink.SetLinkName(containerVethName, targetIfName); err != nil {
+		return err
+	}
+
+	if err := DisableRAForInterface(targetIfName); err != nil {
 		return err
 	}
 
@@ -227,4 +238,21 @@ func AddSnatRule(match string, ip net.IP) error {
 
 	target := fmt.Sprintf("SNAT --to %s", ip.String())
 	return iptables.InsertIptableRule(version, iptables.Nat, iptables.Postrouting, match, target)
+}
+
+func DisableRAForInterface(ifName string) error {
+	raFilePath := fmt.Sprintf(acceptRAV6File, ifName)
+	exist, err := common.CheckIfFileExists(raFilePath)
+	if !exist {
+		log.Printf("[net] accept_ra file doesn't exist:err:%v", err)
+		return nil
+	}
+
+	cmd := fmt.Sprintf(disableRACmd, ifName)
+	out, err := platform.ExecuteCommand(cmd)
+	if err != nil {
+		log.Errorf("[net] Diabling ra failed with err: %v out: %v", err, out)
+	}
+
+	return err
 }
