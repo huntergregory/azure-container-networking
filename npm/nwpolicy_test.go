@@ -7,6 +7,8 @@ import (
 
 	"github.com/Azure/azure-container-networking/npm/ipsm"
 	"github.com/Azure/azure-container-networking/npm/iptm"
+	"github.com/Azure/azure-container-networking/npm/metrics"
+	"github.com/Azure/azure-container-networking/npm/metrics/promutil"
 	"github.com/Azure/azure-container-networking/npm/util"
 
 	corev1 "k8s.io/api/core/v1"
@@ -38,7 +40,7 @@ func TestAddNetworkPolicy(t *testing.T) {
 	}
 
 	// Create ns-kube-system set
-	if err := ipsMgr.CreateSet("ns-"+util.KubeSystemFlag, util.IpsetNetHashFlag); err != nil {
+	if err := ipsMgr.CreateSet("ns-"+util.KubeSystemFlag, append([]string{util.IpsetNetHashFlag})); err != nil {
 		t.Errorf("TestAddNetworkPolicy failed @ ipsMgr.CreateSet, adding kube-system set%+v", err)
 	}
 
@@ -77,11 +79,18 @@ func TestAddNetworkPolicy(t *testing.T) {
 		Spec: networkingv1.NetworkPolicySpec{
 			Ingress: []networkingv1.NetworkPolicyIngressRule{
 				networkingv1.NetworkPolicyIngressRule{
-					From: []networkingv1.NetworkPolicyPeer{{
-						PodSelector: &metav1.LabelSelector{
-							MatchLabels: map[string]string{"app": "test"},
+					From: []networkingv1.NetworkPolicyPeer{
+						networkingv1.NetworkPolicyPeer{
+							PodSelector: &metav1.LabelSelector{
+								MatchLabels: map[string]string{"app": "test"},
+							},
 						},
-					}},
+						networkingv1.NetworkPolicyPeer{
+							IPBlock: &networkingv1.IPBlock{
+								CIDR: "0.0.0.0/0",
+							},
+						},
+					},
 					Ports: []networkingv1.NetworkPolicyPort{{
 						Protocol: &tcp,
 						Port:     &port8000,
@@ -91,12 +100,26 @@ func TestAddNetworkPolicy(t *testing.T) {
 		},
 	}
 
+	gaugeVal, err1 := promutil.GetValue(metrics.NumPolicies)
+	countVal, err2 := promutil.GetCountValue(metrics.AddPolicyExecTime)
+
 	npMgr.Lock()
 	if err := npMgr.AddNetworkPolicy(allowIngress); err != nil {
 		t.Errorf("TestAddNetworkPolicy failed @ allowIngress AddNetworkPolicy")
 		t.Errorf("Error: %v", err)
 	}
 	npMgr.Unlock()
+
+	ipsMgr = npMgr.nsMap[util.KubeAllNamespacesFlag].ipsMgr
+
+	// Check whether 0.0.0.0/0 got translated to 1.0.0.0/1 and 128.0.0.0/1
+	if ! ipsMgr.Exists("allow-ingress-in-ns-test-nwpolicy-0in", "1.0.0.0/1", util.IpsetNetHashFlag) {
+		t.Errorf("TestDeleteFromSet failed @ ipsMgr.AddToSet")
+	}
+
+	if ! ipsMgr.Exists("allow-ingress-in-ns-test-nwpolicy-0in", "128.0.0.0/1", util.IpsetNetHashFlag) {
+		t.Errorf("TestDeleteFromSet failed @ ipsMgr.AddToSet")
+	}
 
 	allowEgress := &networkingv1.NetworkPolicy{
 		ObjectMeta: metav1.ObjectMeta{
@@ -126,6 +149,16 @@ func TestAddNetworkPolicy(t *testing.T) {
 		t.Errorf("Error: %v", err)
 	}
 	npMgr.Unlock()
+
+	newGaugeVal, err3 := promutil.GetValue(metrics.NumPolicies)
+	newCountVal, err4 := promutil.GetCountValue(metrics.AddPolicyExecTime)
+	promutil.NotifyIfErrors(t, err1, err2, err3, err4)
+	if newGaugeVal != gaugeVal+2 {
+		t.Errorf("Change in policy number didn't register in prometheus")
+	}
+	if newCountVal != countVal+2 {
+		t.Errorf("Execution time didn't register in prometheus")
+	}
 }
 
 func TestUpdateNetworkPolicy(t *testing.T) {
@@ -161,7 +194,7 @@ func TestUpdateNetworkPolicy(t *testing.T) {
 	}()
 
 	// Create ns-kube-system set
-	if err := ipsMgr.CreateSet("ns-"+util.KubeSystemFlag, util.IpsetNetHashFlag); err != nil {
+	if err := ipsMgr.CreateSet("ns-"+util.KubeSystemFlag, append([]string{util.IpsetNetHashFlag})); err != nil {
 		t.Errorf("TestUpdateNetworkPolicy failed @ ipsMgr.CreateSet, adding kube-system set%+v", err)
 	}
 
@@ -273,7 +306,7 @@ func TestDeleteNetworkPolicy(t *testing.T) {
 	}()
 
 	// Create ns-kube-system set
-	if err := ipsMgr.CreateSet("ns-"+util.KubeSystemFlag, util.IpsetNetHashFlag); err != nil {
+	if err := ipsMgr.CreateSet("ns-"+util.KubeSystemFlag, append([]string{util.IpsetNetHashFlag})); err != nil {
 		t.Errorf("TestDeleteNetworkPolicy failed @ ipsMgr.CreateSet, adding kube-system set%+v", err)
 	}
 
@@ -322,8 +355,16 @@ func TestDeleteNetworkPolicy(t *testing.T) {
 		t.Errorf("TestAddNetworkPolicy failed @ AddNetworkPolicy")
 	}
 
+	gaugeVal, err1 := promutil.GetValue(metrics.NumPolicies)
+
 	if err := npMgr.DeleteNetworkPolicy(allow); err != nil {
 		t.Errorf("TestDeleteNetworkPolicy failed @ DeleteNetworkPolicy")
 	}
 	npMgr.Unlock()
+
+	newGaugeVal, err2 := promutil.GetValue(metrics.NumPolicies)
+	promutil.NotifyIfErrors(t, err1, err2)
+	if newGaugeVal != gaugeVal-1 {
+		t.Errorf("Change in policy number didn't register in prometheus")
+	}
 }

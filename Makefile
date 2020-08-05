@@ -49,6 +49,8 @@ CNSFILES = \
 	$(wildcard cns/routes/*.go) \
 	$(wildcard cns/service/*.go) \
 	$(wildcard cns/networkcontainers/*.go) \
+	$(wildcard cns/requestcontroller/*.go) \
+	$(wildcard cns/requestcontroller/kubecontroller/*.go) \
 	$(COREFILES) \
 	$(CNMFILES)
 
@@ -270,6 +272,7 @@ publish-azure-vnet-plugin-image:
 azure-npm-image: azure-npm
 ifeq ($(GOOS),linux)
 	docker build \
+	--no-cache \
 	-f npm/Dockerfile \
 	-t $(AZURE_NPM_IMAGE):$(VERSION) \
 	--build-arg NPM_BUILD_DIR=$(NPM_BUILD_DIR) \
@@ -308,6 +311,19 @@ ifeq ($(GOOS),linux)
 	--build-arg CNS_BUILD_ARCHIVE=$(CNS_BUILD_DIR)/$(CNS_IMAGE_ARCHIVE_NAME) \
 	.
 	docker save $(AZURE_CNS_IMAGE):$(VERSION) | gzip -c > $(CNS_BUILD_DIR)/$(CNS_IMAGE_ARCHIVE_NAME)
+endif
+
+# Build the Azure CNS image for AKS Swift.
+.PHONY: azure-cns-aks-swift-image
+azure-cns-aks-swift-image:
+ifeq ($(GOOS),linux)
+	docker build \
+	-f cns/aks.Dockerfile \
+	-t $(AZURE_CNS_IMAGE):$(VERSION) \
+	--build-arg VERSION=$(VERSION) \
+	--build-arg CNS_AI_PATH=$(cnsaipath) \
+	--build-arg CNS_AI_ID=$(CNS_AI_ID) \
+	.
 endif
 
 # Publish the Azure NPM image to a Docker registry
@@ -367,16 +383,4 @@ endif
 # run all tests
 .PHONY: test-all
 test-all:
-	go test -v -race -covermode atomic -coverprofile=coverage.out \
-        ./ipam/ \
-        ./log/ \
-        ./netlink/ \
-        ./store/ \
-        ./telemetry/ \
-		./aitelemetry/ \
-        ./cnm/network/ \
-        ./cni/ipam/ \
-        ./cns/ipamclient/ \
-        ./cnms/service/ \
-        ./npm/iptm/ \
-        ./npm/ipsm/
+	go test -v -race -covermode atomic -coverprofile=coverage.out ./...
