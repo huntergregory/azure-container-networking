@@ -23,6 +23,7 @@ const (
 	LevelDebug
 )
 
+// Indicators for unknown items
 const (
 	UnknownLevel     = "UNKNOWN_LEVEL"
 	UnknownComponent = "UNKNOWN_COMPONENT"
@@ -150,24 +151,30 @@ func (logger *Logger) getLogFileName() string {
 	return logFileName
 }
 
-const folderDelimiter = "/" //TODO handle non-Linux path
-const base = "azure-container-networking" + folderDelimiter
+const base = "azure-container-networking"
 const errorFormat = "Couldn't set component name of logger with problem: %s in path %s"
+
+func getFolderDelimiter() string {
+	if runtime.GOOS == "windows" {
+		return "\\"
+	}
+	return "/"
+}
 
 // SetComponentName sets the component name that appears at the beginning of a message in a log.
 // Pass in runtime.Caller(0) as the only argument
 func (logger *Logger) SetComponentName(pc uintptr, fileName string, line int, ok bool) {
 	if !ok {
-		logger.WriteToLog(LevelInfo, "input arguments from Caller() failed")
+		logger.WriteToLog(LevelInfo, "Couldn't set component name of logger. Input arguments from Caller() failed")
 		return
 	}
-	baseExpression := regexp.MustCompile(base)
+	baseExpression := regexp.MustCompile(base + getFolderDelimiter())
 	baseIndex := baseExpression.FindAllStringIndex(fileName, 1)
 	if baseIndex == nil {
 		logger.WriteToLog(LevelInfo, errorFormat, "couldn't find base folder", fileName)
 		return
 	}
-	folderExpression := regexp.MustCompile(folderDelimiter)
+	folderExpression := regexp.MustCompile(getFolderDelimiter())
 	slashIndices := folderExpression.FindAllStringIndex(fileName, -1) //TODO handle non-Linux paths
 	if slashIndices == nil {
 		logger.WriteToLog(LevelInfo, errorFormat, "couldn't find any repo subfolders", fileName)
@@ -318,11 +325,6 @@ func (logger *Logger) WriteToLog(level int, format string, args ...interface{}) 
 	logger.mutex.Lock()
 	logger.logf(fullMessage, args...)
 	logger.mutex.Unlock()
-	go func() {
-		if logger.reports != nil {
-			logger.reports <- fmt.Sprintf(format, args...)
-		}
-	}()
 }
 
 // GetLevelName returns the name of a level or a default name if the level is undefined.
