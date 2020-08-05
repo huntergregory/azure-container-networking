@@ -36,7 +36,11 @@ Microsoft docs has a detailed step by step example on how to use Kubernetes netw
 2. [Allow inbound traffic based on a pod label](https://docs.microsoft.com/en-us/azure/aks/use-network-policies#allow-inbound-traffic-based-on-a-pod-label)
 3. [Allow traffic only from within a defined namespace](https://docs.microsoft.com/en-us/azure/aks/use-network-policies#allow-traffic-only-from-within-a-defined-namespace)
 
-## Troubleshooting
+## Monitoring and Visualization
+
+To help you better understand your configuration, NPM includes Prometheus metrics. Visualizations are available in an Azure Workbook and a Grafana Dashboard, and you can collect the metrics via Azure Container Insights or a Prometheus Server. For details on benefits and instructions for setup, see [Monitor and Visualize Network Configurations with Azure Network Policy Manager (NPM)](https://bing.com). FIXME (link)
+
+## Additional Troubleshooting
 
 `azure-npm` translates Kubernetes network policies into a set of `iptables` rules under the hood.
 When `azure-npm` isn't working as expected, try to **delete all networkpolicies and apply them again**.
