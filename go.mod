@@ -1,6 +1,7 @@
 module github.com/Azure/azure-container-networking
 
 go 1.17
+toolchain go1.24.1
 
 require (
 	code.cloudfoundry.org/clock v1.0.0 // indirect
@@ -34,7 +35,7 @@ require (
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
 	google.golang.org/grpc v1.44.0
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/protobuf v1.36.6
 	k8s.io/api v0.23.4
 	k8s.io/apiextensions-apiserver v0.23.4
 	k8s.io/apimachinery v0.23.4
